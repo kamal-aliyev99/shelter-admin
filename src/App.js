@@ -1,6 +1,6 @@
-import React, { Suspense, useEffect } from 'react'
-import { HashRouter, Route, Routes } from 'react-router-dom'
-import { useSelector } from 'react-redux'
+import React, { Suspense, useEffect, useState } from 'react'
+import { BrowserRouter, HashRouter, Route, Router, Routes } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
 
 import { CSpinner, useColorModes } from '@coreui/react'
 import './scss/style.scss'
@@ -17,6 +17,18 @@ const Page500 = React.lazy(() => import('./views/pages/page500/Page500'))
 const App = () => {
   const { isColorModeSet, setColorMode } = useColorModes('coreui-free-react-admin-template-theme')
   const storedTheme = useSelector((state) => state.theme)
+
+  // const dispatch = useDispatch();
+  // const storedLang = useSelector((state) => state.lang)
+  // const [lang, setLang] = useState(storedLang)
+
+  // setTimeout(() => {
+  //   setLang("ru")
+  //   dispatch({type: "set", lang})
+  // }, 1000)
+
+  // console.log(storedLang);
+  
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.href.split('?')[1])

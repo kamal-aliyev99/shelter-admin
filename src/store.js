@@ -1,8 +1,11 @@
+import { useState } from 'react'
 import { legacy_createStore as createStore } from 'redux'
 
 const initialState = {
   sidebarShow: true,
   theme: 'light',
+  apiURL: "http://localhost:3030",
+  lang: "en"
 }
 
 const changeState = (state = initialState, { type, ...rest }) => {

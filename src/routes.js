@@ -1,3 +1,4 @@
+import { exact } from 'prop-types'
 import React from 'react'
 
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
@@ -5,6 +6,7 @@ const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 // Lang
 
 const Lang = React.lazy(() => import('./views/lang/lang'))
+const LangInner = React.lazy(() => import('./views/lang/lang-inner'))
 
 
 
@@ -59,8 +61,8 @@ const Widgets = React.lazy(() => import('./views/widgets/Widgets'))
 const routes = [
   { path: '/', exact: true, name: 'Home' },
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
-  { path: '/lang', name: 'Languages', element: Lang },  // exact: true ???
-
+  { path: '/lang', name: 'Languages', element: Lang, exact: true},  
+  { path: '/lang/:id', name: 'Language', element: LangInner},
 
 
   { path: '/base', name: 'Base', element: Cards, exact: true },

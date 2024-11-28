@@ -1,1 +1,111 @@
 // Here you can add other styles
+
+.flexButton{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+}
+
+.card__header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+
+    &--btns{
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+}
+
+
+//      T A B L E
+
+.table__options{
+    width: 180px;
+}
+.table__options--item > button{
+    margin-inline: 6px;
+}
+
+.table-container{
+    width: 100%;
+    overflow-x: auto;
+}
+
+.main-table{
+    min-width: 640px;
+}
+
+.table__image--S{
+    height: 44px;
+
+    img{
+        height: 100%;
+        object-fit: contain;
+    }
+}
+
+
+//      M O D A L
+
+.infoModal > .modal-dialog{
+    max-width: 640px;
+}
+
+.infoModal__item{
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.infoModal__item > strong{
+    flex: 1;
+}
+
+.infoModal__item > :last-child{
+    flex: 3;
+    margin: 0;
+    padding-left: 14px;
+    border-left: 1px solid #535353;
+}
+
+.infoModal__item--image {
+    height: 140px;
+    text-align: center;
+
+    img{
+        height: 100%;
+        object-fit: contain;
+    }
+}
+.infoModal__item--icon{
+    text-align: center;
+}
+
+
+//      F O R M
+
+.form__fileInput{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+
+    &--image{
+        height: 80px;
+        img{
+            height: 100%;
+            object-fit: contain;
+        }
+    }
+}
+
+
+
+
+
+
+

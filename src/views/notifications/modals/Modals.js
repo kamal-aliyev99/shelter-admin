@@ -187,6 +187,7 @@ const ScrollingLongContent2 = () => {
             Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Vivamus sagittis
             lacus vel augue laoreet rutrum faucibus dolor auctor.
           </p>
+          <hr/>
           <p>
             Aenean lacinia bibendum nulla sed consectetur. Praesent commodo cursus magna, vel
             scelerisque nisl consectetur et. Donec sed odio dui. Donec ullamcorper nulla non metus
