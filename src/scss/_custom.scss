@@ -1,11 +1,42 @@
 // Here you can add other styles
 
+input:disabled{
+    cursor: not-allowed;
+}
+
 .flexButton{
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 6px;
 }
+
+.inputRequired{
+    color: rgb(212, 17, 17);
+    padding-left: 3px;
+    font-size: 18px;
+    line-height: 0;
+}
+
+.error-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    font-size: clamp(20px, 4.8vw, 36px);
+}
+
+.shadow-content{
+    opacity: 0.5;
+    cursor: not-allowed;
+
+    *{
+        cursor: not-allowed;
+    }
+}
+
+
+//      C A R D    
 
 .card__header{
     display: flex;
@@ -18,6 +49,34 @@
         align-items: center;
         gap: 10px;
     }
+}
+
+.card-body{
+    position: relative;
+    overflow: hidden;
+} // add style to default
+
+.cardLoading{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    background-color: #ffffff15 !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: progress;
+
+    .spinner-border{
+        width: 45px;
+        height: 45px;
+    }
+}
+
+.tableRow{
+    position: relative;
 }
 
 
@@ -89,18 +148,62 @@
 
 //      F O R M
 
-.form__fileInput{
+.fileInput{
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
 
-    &--image{
-        height: 80px;
-        img{
-            height: 100%;
-            object-fit: contain;
+    &__currentImage{
+        transition: 300ms;
+        -webkit-transition: 300ms;
+        -moz-transition: 300ms;
+        -ms-transition: 300ms;
+        -o-transition: 300ms;
+
+        &--image{
+            height: 140px;
+            transition: 300ms;
+            img{
+                height: 100%;
+                object-fit: contain;
+            }
         }
     }
+    &__downloadImage{
+        &--image{
+            height: 140px;
+            position: relative;
+
+            img{
+                height: 100%;
+                object-fit: contain;
+            }
+            .fileInput__downloadImage--delete{
+                display: block;
+                padding: 4px 8px;
+                position: absolute;
+                top: 0;
+                right: 0;
+                z-index: 1;
+                opacity: 0.6;
+                color: black;
+                background-color: rgb(212, 212, 212);
+                border-radius: 0 0 0 8px;
+                transition: 150ms;
+                cursor: pointer;
+    
+                &:hover{
+                    color: red;
+                    opacity: 1;
+                }
+            }
+        }
+    }
+}
+
+.fileInput__input{
+    width: max-content;
+    height: min-content;
 }
 
 

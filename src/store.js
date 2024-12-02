@@ -5,7 +5,8 @@ const initialState = {
   sidebarShow: true,
   theme: 'light',
   apiURL: "http://localhost:3030",
-  lang: "en"
+  lang: "en",
+  toast: null
 }
 
 const changeState = (state = initialState, { type, ...rest }) => {

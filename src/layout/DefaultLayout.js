@@ -1,7 +1,12 @@
-import React from 'react'
+import React, { useRef } from 'react'
 import { AppContent, AppSidebar, AppFooter, AppHeader } from '../components/index'
+import { useSelector } from 'react-redux'
+import { CToaster } from '@coreui/react'
 
 const DefaultLayout = () => {
+  const toast = useSelector((state) => state.toast)
+  const toaster = useRef();  
+
   return (
     <div>
       <AppSidebar />
@@ -12,6 +17,7 @@ const DefaultLayout = () => {
         </div>
         <AppFooter />
       </div>
+      <CToaster className="p-3" placement="top-end" push={toast} ref={toaster}/>
     </div>
   )
 }
