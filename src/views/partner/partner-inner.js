@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   CButton,
   CCard,
@@ -10,7 +10,7 @@ import {
   CFormInput,
   CFormLabel,
   CRow,
-  CSpinner,
+  CSpinner
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react';
 import {
@@ -30,8 +30,7 @@ import Toast from '../../components/Toast';
 
 const validationSchema = Yup.object({
   id: Yup.number().min(0, "ID cannot be less than 0"),
-  langCode: Yup.string().max(10, 'langCode must be at most 10 characters').required('langCode is required'),
-  name: Yup.string().max(255, 'Name must be at most 255 characters').required('Name is required'),
+  title: Yup.string().max(255, 'key must be at most 255 characters').required('key is required'),
   image: Yup.string().nullable(),
 });
 
@@ -66,9 +65,9 @@ const validateImage = async (file) => {
 };
 
 
-//    L A N G    Component
+//    Partner    Component
 
-const LangInner = () => {
+const PartnerInner = () => {
   const apiURL = useSelector((state) => state.apiURL);  
   const nav = useNavigate();
   const dispatch = useDispatch();
@@ -79,8 +78,7 @@ const LangInner = () => {
   const [validationErrors, setValidationErrors] = useState();
   const [data, setData] = useState({  
     id: 0,
-    langCode: "",
-    name: "",
+    title: "",
     image: undefined
   });
   const [deleteImage, setDeleteImage] = useState(false);
@@ -105,7 +103,7 @@ const LangInner = () => {
     setData(prew => {
       return {
         ...prew,
-        [e.target.name]: e.target.value
+        [e.target.name]: e.target.value 
       }
     })
   }
@@ -120,7 +118,7 @@ const LangInner = () => {
   }, [file])  
 
   function getData(id) {
-    fetch(`${apiURL}/api/lang/${id}`)
+    fetch(`${apiURL}/api/partner/${id}`)
       .then(res => {
         if (res.ok) {
           return res.json();
@@ -132,7 +130,7 @@ const LangInner = () => {
         }
       })
       .then(data => {
-        setData(data)
+        setData(data)        
       })
       .catch(err => {        
         setNotFound(true);
@@ -161,14 +159,14 @@ const LangInner = () => {
 
       showNotf(false, "Please enter correct data")
       setValidationErrors(err); 
+      setLoading(false)
 
     } else {
       setValidationErrors(undefined);
 
       const formData = new FormData();
       id != 0 && formData.append('id', id);
-      formData.append('langCode', data.langCode.toLowerCase());
-      formData.append('name', data.name);
+      formData.append('title', data.title);
   
       if (deleteImage || (id == 0 && !file)) {
         formData.append('image', null);      
@@ -179,7 +177,7 @@ const LangInner = () => {
       }
       
 
-      fetch(`${apiURL}/api/lang/${id != 0 ? id : ""}`, {
+      fetch(`${apiURL}/api/partner/${id != 0 ? id : ""}`, {
         method: id == 0 ? "POST" : "PATCH",
         body: formData,
       })
@@ -196,7 +194,7 @@ const LangInner = () => {
         .then((data) => {          
           // console.log('Success:', data);
           if (id==0) {
-            nav(`/lang/${data.data.id}`)
+            nav(`/partner/${data.data.id}`)
           } 
           getData(data.data.id);
           file && handleDeleteDownloadedImage();
@@ -226,7 +224,7 @@ const LangInner = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader className='card__header'>
-            <h3> Language </h3>
+            <h3> Partner </h3>
             <div className='card__header--btns'>
                 <CButton
                     color="primary"
@@ -242,7 +240,7 @@ const LangInner = () => {
                     color="secondary"
                     className='flexButton'
                     // onClick={() => null}
-                    href='#/lang'
+                    href='#/partner'
                     disabled={loading}
                 >
                   <CIcon icon={cilXCircle}/>
@@ -252,7 +250,7 @@ const LangInner = () => {
           </CCardHeader>
           <CCardBody>
             <p className="text-body-secondary small">
-              You can {id==0 ? "create" : "update"} <i>Language</i>
+              You can {id==0 ? "create" : "update"} <i>Partner</i>
             </p>
 
 
@@ -263,7 +261,7 @@ const LangInner = () => {
               onSubmit={handleSubmit}
             >
                 <CCol md={12} className="mb-3">
-                  <CFormLabel htmlFor="image" className='mb-3'>Image (flag)</CFormLabel>
+                  <CFormLabel htmlFor="image" className='mb-3'>Image</CFormLabel>
                   <div className='fileInput'>
                     {
                       data?.image &&
@@ -339,39 +337,20 @@ const LangInner = () => {
                 </CCol>
                 
                 <CCol md={6} className="mb-3">
-                  <CFormLabel htmlFor="langCode">
-                    Language Code
+                  <CFormLabel htmlFor="title">
+                    Key
                     <span className='inputRequired' title='Required'>*</span>
                   </CFormLabel>
                   <CFormInput
                     type="text"
-                    id="langCode"
-                    name="langCode"
-                    placeholder="Language Code (max 10 character)"
-                    value={data?.langCode}
+                    id="title"
+                    name="title"
+                    placeholder="Title"
+                    value={data.title}
                     onChange={handleData}
                     required
-                    disabled={data?.langCode == "en"}
-                    feedbackInvalid={validationErrors?.langCode}
-                    invalid={!!validationErrors?.langCode}
-                  />
-                </CCol>
-
-                <CCol md={6} className="mb-3">
-                  <CFormLabel htmlFor="name">
-                    Language Name
-                    <span className='inputRequired' title='Required'>*</span>
-                  </CFormLabel>
-                  <CFormInput
-                    type="text"
-                    id="name"
-                    name="name"
-                    placeholder="Language Name"
-                    value={data?.name}
-                    onChange={handleData}
-                    required
-                    feedbackInvalid={validationErrors?.name}
-                    invalid={!!validationErrors?.name}
+                    feedbackInvalid={validationErrors?.title}
+                    invalid={!!validationErrors?.title}
                   />
                 </CCol>
 
@@ -389,7 +368,7 @@ const LangInner = () => {
                   <CButton
                     color="secondary"
                     className='flexButton'
-                    href='#/lang'
+                    href='#/partner'
                   >
                     <CIcon icon={cilXCircle}/>
                     Cancel
@@ -409,4 +388,4 @@ const LangInner = () => {
   )
 }
 
-export default LangInner
+export default PartnerInner

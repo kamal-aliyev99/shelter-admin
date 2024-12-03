@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   CButton,
   CCard,
@@ -10,7 +10,7 @@ import {
   CFormInput,
   CFormLabel,
   CRow,
-  CSpinner,
+  CSpinner
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react';
 import {
@@ -23,6 +23,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import * as Yup from 'yup';
 import Toast from '../../components/Toast';
+import slugify from 'slugify';
 
 
 
@@ -30,8 +31,7 @@ import Toast from '../../components/Toast';
 
 const validationSchema = Yup.object({
   id: Yup.number().min(0, "ID cannot be less than 0"),
-  langCode: Yup.string().max(10, 'langCode must be at most 10 characters').required('langCode is required'),
-  name: Yup.string().max(255, 'Name must be at most 255 characters').required('Name is required'),
+  page: Yup.string().max(255, 'page must be at most 255 characters').required('page is required'),
   image: Yup.string().nullable(),
 });
 
@@ -66,9 +66,9 @@ const validateImage = async (file) => {
 };
 
 
-//    L A N G    Component
+//    B A N N E R    Component
 
-const LangInner = () => {
+const BannerInner = () => {
   const apiURL = useSelector((state) => state.apiURL);  
   const nav = useNavigate();
   const dispatch = useDispatch();
@@ -79,10 +79,10 @@ const LangInner = () => {
   const [validationErrors, setValidationErrors] = useState();
   const [data, setData] = useState({  
     id: 0,
-    langCode: "",
-    name: "",
+    page: "",
     image: undefined
   });
+  const [primaryInput, setPrimaryInput] = useState("")
   const [deleteImage, setDeleteImage] = useState(false);
   const [file, setFile] = useState(null);
   const [previewImage, setPreviewImage] = useState();
@@ -105,9 +105,18 @@ const LangInner = () => {
     setData(prew => {
       return {
         ...prew,
-        [e.target.name]: e.target.value
+        [e.target.name]: e.target.value 
       }
     })
+  }
+
+  function handlePrimaryInput(e) {
+    const text = e.target.value;
+    setPrimaryInput(text);
+    setData(prew => ({
+      ...prew,
+      page: slugify(text, { lower: true, strict: true })
+    }))
   }
 
   useEffect(() => {
@@ -120,7 +129,7 @@ const LangInner = () => {
   }, [file])  
 
   function getData(id) {
-    fetch(`${apiURL}/api/lang/${id}`)
+    fetch(`${apiURL}/api/banner/${id}`)
       .then(res => {
         if (res.ok) {
           return res.json();
@@ -132,7 +141,8 @@ const LangInner = () => {
         }
       })
       .then(data => {
-        setData(data)
+        setData(data)        
+        setPrimaryInput(data.page)
       })
       .catch(err => {        
         setNotFound(true);
@@ -161,14 +171,14 @@ const LangInner = () => {
 
       showNotf(false, "Please enter correct data")
       setValidationErrors(err); 
+      setLoading(false)
 
     } else {
       setValidationErrors(undefined);
 
       const formData = new FormData();
       id != 0 && formData.append('id', id);
-      formData.append('langCode', data.langCode.toLowerCase());
-      formData.append('name', data.name);
+      formData.append('page', data.page);
   
       if (deleteImage || (id == 0 && !file)) {
         formData.append('image', null);      
@@ -179,7 +189,7 @@ const LangInner = () => {
       }
       
 
-      fetch(`${apiURL}/api/lang/${id != 0 ? id : ""}`, {
+      fetch(`${apiURL}/api/banner/${id != 0 ? id : ""}`, {
         method: id == 0 ? "POST" : "PATCH",
         body: formData,
       })
@@ -196,7 +206,7 @@ const LangInner = () => {
         .then((data) => {          
           // console.log('Success:', data);
           if (id==0) {
-            nav(`/lang/${data.data.id}`)
+            nav(`/banner/${data.data.id}`)
           } 
           getData(data.data.id);
           file && handleDeleteDownloadedImage();
@@ -226,7 +236,7 @@ const LangInner = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader className='card__header'>
-            <h3> Language </h3>
+            <h3> Banner </h3>
             <div className='card__header--btns'>
                 <CButton
                     color="primary"
@@ -242,7 +252,7 @@ const LangInner = () => {
                     color="secondary"
                     className='flexButton'
                     // onClick={() => null}
-                    href='#/lang'
+                    href='#/banner'
                     disabled={loading}
                 >
                   <CIcon icon={cilXCircle}/>
@@ -252,7 +262,7 @@ const LangInner = () => {
           </CCardHeader>
           <CCardBody>
             <p className="text-body-secondary small">
-              You can {id==0 ? "create" : "update"} <i>Language</i>
+              You can {id==0 ? "create" : "update"} <i>Banner</i>
             </p>
 
 
@@ -263,7 +273,7 @@ const LangInner = () => {
               onSubmit={handleSubmit}
             >
                 <CCol md={12} className="mb-3">
-                  <CFormLabel htmlFor="image" className='mb-3'>Image (flag)</CFormLabel>
+                  <CFormLabel htmlFor="image" className='mb-3'>Image (banner)</CFormLabel>
                   <div className='fileInput'>
                     {
                       data?.image &&
@@ -323,7 +333,7 @@ const LangInner = () => {
                   }
                 </CCol>
             
-                <CCol md={6} className="mb-3">
+                <CCol md={12} className="mb-3">
                   <CFormLabel htmlFor="id">
                     ID 
                   </CFormLabel>
@@ -339,39 +349,36 @@ const LangInner = () => {
                 </CCol>
                 
                 <CCol md={6} className="mb-3">
-                  <CFormLabel htmlFor="langCode">
-                    Language Code
+                  <CFormLabel htmlFor="page">
+                    Page Name
                     <span className='inputRequired' title='Required'>*</span>
                   </CFormLabel>
                   <CFormInput
                     type="text"
-                    id="langCode"
-                    name="langCode"
-                    placeholder="Language Code (max 10 character)"
-                    value={data?.langCode}
-                    onChange={handleData}
+                    id="page"
+                    name="page"
+                    placeholder="Page Name"
+                    value={primaryInput}
+                    onChange={handlePrimaryInput}
                     required
-                    disabled={data?.langCode == "en"}
-                    feedbackInvalid={validationErrors?.langCode}
-                    invalid={!!validationErrors?.langCode}
+                    feedbackInvalid={validationErrors?.page}
+                    invalid={!!validationErrors?.page}
                   />
                 </CCol>
 
                 <CCol md={6} className="mb-3">
-                  <CFormLabel htmlFor="name">
-                    Language Name
-                    <span className='inputRequired' title='Required'>*</span>
+                  <CFormLabel htmlFor="page">
+                    Page slug
+                    {/* <span className='inputRequired' title='Required'>*</span> */}
                   </CFormLabel>
                   <CFormInput
                     type="text"
-                    id="name"
-                    name="name"
-                    placeholder="Language Name"
-                    value={data?.name}
-                    onChange={handleData}
-                    required
-                    feedbackInvalid={validationErrors?.name}
-                    invalid={!!validationErrors?.name}
+                    id="page"
+                    name="page"
+                    placeholder="Will create automatically"
+                    value={data?.page}
+                    // onChange={handleData}
+                    disabled
                   />
                 </CCol>
 
@@ -389,7 +396,7 @@ const LangInner = () => {
                   <CButton
                     color="secondary"
                     className='flexButton'
-                    href='#/lang'
+                    href='#/banner'
                   >
                     <CIcon icon={cilXCircle}/>
                     Cancel
@@ -409,4 +416,4 @@ const LangInner = () => {
   )
 }
 
-export default LangInner
+export default BannerInner

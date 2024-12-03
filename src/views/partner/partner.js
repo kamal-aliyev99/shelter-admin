@@ -30,7 +30,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import Toast from '../../components/Toast';
 
-const Lang = () => {
+const Partner = () => {
   const dispatch = useDispatch();
   const [datas, setDatas] = useState([]);
   const [selectedData, setSelectedData] = useState();
@@ -64,7 +64,7 @@ const Lang = () => {
   }
 
   function getDatas() {
-    fetch(`${apiURL}/api/lang`)
+    fetch(`${apiURL}/api/partner`) 
       .then(res => {
         if (res.ok) {
           return res.json();
@@ -90,15 +90,16 @@ const Lang = () => {
   function deleteData(id) {
     setLoadingIDs(prew => [...prew, id])
 
-    fetch(`${apiURL}/api/lang/${id}`, {
+    fetch(`${apiURL}/api/partner/${id}`, {
       method: "DELETE",
     })
       .then((res) => {        
         if (res.ok) {
+          // return res.json();
           getDatas();
           showNotf(true, "Deleted successfully");
         } else {
-          showNotf(false, `${res.status}: An error occurred while deleting language`);
+          showNotf(false, `${res.status}: An error occurred while deleting partner`);
           return res.json().then(err =>{
             console.error(err);
           })
@@ -116,11 +117,11 @@ const Lang = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader className='card__header'>
-            <h3> Languages </h3>
+            <h3> Partner </h3>
             <CButton
               color="primary"
               className='flexButton'
-              href='#/lang/0'
+              href='#/partner/0'
             >
               <CIcon icon={cilPlus}/>
               Create
@@ -128,16 +129,15 @@ const Lang = () => {
           </CCardHeader>
           <CCardBody>
             <p className="text-body-secondary small">
-              You can add, update and delete <i>Languages</i>
+              You can add, update and delete <i> Partner</i>
             </p>
             <div className='table-container'>
               <CTable striped hover className='main-table'>
                 <CTableHead>
                   <CTableRow>
                     <CTableHeaderCell scope="col">ID</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Image (flag)</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">LangCode</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Name</CTableHeaderCell>
+                    <CTableHeaderCell scope="col">Image</CTableHeaderCell>
+                    <CTableHeaderCell scope="col">Title</CTableHeaderCell>
                     <CTableHeaderCell scope="col" className='table__options'>Options</CTableHeaderCell>
                   </CTableRow>
                 </CTableHead>
@@ -154,13 +154,12 @@ const Lang = () => {
                           {
                             data.image ?
                             <div className='table__image--S'>
-                              <img src={data.image} alt={data.name}/>
+                              <img src={data.image} alt={data.title}/>
                             </div> :
                             <CIcon icon={cilImageBroken} title="There isn't image"/>
                           }
                         </CTableDataCell>
-                        <CTableDataCell>{data.langCode}</CTableDataCell>
-                        <CTableDataCell>{data.name}</CTableDataCell>
+                        <CTableDataCell>{data.title}</CTableDataCell>
                         <CTableDataCell className='table__options--item'>
                           <CButton
                             color="info"
@@ -176,8 +175,7 @@ const Lang = () => {
                             color="warning"
                             variant="outline"
                             title='Edit'
-                            // disabled="false"
-                            href={`#/lang/${data.id}`}
+                            href={`#/partner/${data.id}`}
                           >
                             <CIcon icon={cilPencil}/>
                           </CButton>
@@ -185,7 +183,6 @@ const Lang = () => {
                             color="danger"
                             variant="outline"
                             title='Delete'
-                            disabled={data.langCode == "en"}
                             onClick={() => openConfirmModal(data)}
                           >
                             <CIcon icon={cilTrash}/>
@@ -209,7 +206,7 @@ const Lang = () => {
 
             <CModal scrollable visible={modalVisible} onClose={() => closeModal()} className='infoModal'>
               <CModalHeader>
-                <CModalTitle>Language</CModalTitle>
+                <CModalTitle>Partner</CModalTitle>
               </CModalHeader>
               <CModalBody>
                 
@@ -221,11 +218,11 @@ const Lang = () => {
                 <hr/>
 
                 <div className='infoModal__item'>
-                  <strong> Image (flag) </strong>
+                  <strong> Image </strong>
                   {
                     selectedData?.image ?
                     <div className='infoModal__item--image'>
-                      <img src={selectedData?.image} alt={selectedData?.name}/>
+                      <img src={selectedData?.image} alt={selectedData?.title}/>
                     </div> :
                     <div className='infoModal__item--icon'>
                       <CIcon icon={cilImageBroken} title="There isn't image"/>
@@ -236,15 +233,8 @@ const Lang = () => {
                 <hr/>
 
                 <div className='infoModal__item'>
-                  <strong> LangCode </strong>
-                  <p> {selectedData?.langCode} </p>
-                </div>
-
-                <hr/>
-
-                <div className='infoModal__item'>
-                  <strong> Name </strong>
-                  <p> {selectedData?.name} </p>
+                  <strong> Title </strong>
+                  <p> {selectedData?.title} </p>
                 </div>
 
               </CModalBody>
@@ -271,7 +261,7 @@ const Lang = () => {
                 </CModalTitle>
               </CModalHeader>
               <CModalBody>
-                All translate will delete at <strong>{selectedData?.name}</strong> language! 
+                Do you want to delete <strong>{selectedData?.title}</strong> Partner? 
               </CModalBody>
               <CModalFooter>
                 <CButton color="secondary" onClick={() => closeConfirmModal()}>
@@ -295,4 +285,4 @@ const Lang = () => {
   )
 }
 
-export default Lang
+export default Partner

@@ -3,10 +3,21 @@ import React from 'react'
 
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 
-// Lang
-
+//  Lang
 const Lang = React.lazy(() => import('./views/lang/lang'))
 const LangInner = React.lazy(() => import('./views/lang/lang-inner'))
+
+//  Banner
+const Banner = React.lazy(() => import('./views/banner/banner'))
+const BannerInner = React.lazy(() => import('./views/banner/banner-inner'))
+
+const StaticImage = React.lazy(() => import('./views/staticImage/staticImage'))
+const StaticImageInner = React.lazy(() => import('./views/staticImage/staticImage-inner'))
+
+const Partner = React.lazy(() => import('./views/partner/partner'))
+const PartnerInner = React.lazy(() => import('./views/partner/partner-inner'))
+
+
 
 
 
@@ -61,8 +72,22 @@ const Widgets = React.lazy(() => import('./views/widgets/Widgets'))
 const routes = [
   { path: '/', exact: true, name: 'Home' },
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
+
   { path: '/lang', name: 'Languages', element: Lang, exact: true},  
   { path: '/lang/:id', name: 'Language', element: LangInner},
+  
+  { path: '/banner', name: 'Banners', element: Banner, exact: true},  
+  { path: '/banner/:id', name: 'Banner', element: BannerInner},
+  
+  { path: '/staticImage', name: 'Static Images', element: StaticImage, exact: true},  
+  { path: '/staticImage/:id', name: 'Static Image', element: StaticImageInner},
+  
+  { path: '/partner', name: 'Partners', element: Partner, exact: true},  
+  { path: '/partner/:id', name: 'Partner', element: PartnerInner},
+
+
+
+
 
 
   { path: '/base', name: 'Base', element: Cards, exact: true },

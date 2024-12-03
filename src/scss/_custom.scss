@@ -134,6 +134,7 @@ input:disabled{
 
 .infoModal__item--image {
     height: 140px;
+    overflow: auto;
     text-align: center;
 
     img{
