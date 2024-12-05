@@ -185,6 +185,7 @@ const LangInner = () => {
       })
         .then((res) => {
           if (res.ok) {
+            dispatch({type: "set", rerenderLang: Date.now()})
             return res.json();
           } else {
             return res.json().then(err =>{
@@ -257,7 +258,7 @@ const LangInner = () => {
 
 
             <CForm
-              className="row g-3 needs-validation mt-4"
+              className="row g-3 needs-validation mt-2"
               // noValidate
               // validated={validated}
               onSubmit={handleSubmit}
@@ -334,7 +335,6 @@ const LangInner = () => {
                     placeholder="Will create automatically"
                     disabled
                     value={data?.id || ""}
-                    onChange={handleData}
                   />
                 </CCol>
                 

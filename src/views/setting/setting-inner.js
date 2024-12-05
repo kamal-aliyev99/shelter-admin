@@ -6,7 +6,6 @@ import {
   CCardHeader,
   CCol,
   CForm,
-  CFormCheck,
   CFormInput,
   CFormLabel,
   CRow,
@@ -14,10 +13,8 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react';
 import {
-  cilTrash,
   cilSave,
   cilXCircle,
-  cilImageBroken
 } from '@coreui/icons'
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -32,14 +29,8 @@ import slugify from 'slugify';
 const validationSchema = Yup.object({
   id: Yup.number().min(0, "ID cannot be less than 0"),
   key: Yup.string().max(255, 'key must be at most 255 characters').required('key is required'),
-  image: Yup.string().nullable(),
+  value: Yup.string().nullable(),
 });
-
-const imageValidation = Yup.mixed()
-  .test('is-image', 'Only image files are allowed', (value) => {
-    return value && value.type.startsWith('image/');
-  })
-  
 
 const validateForm = async (formData) => {
   try {
@@ -54,21 +45,10 @@ const validateForm = async (formData) => {
   }
 };
 
-const validateImage = async (file) => {
-  try {
-    await imageValidation.validate(file, { abortEarly: false });
-    return;
-  } catch (err) {
-    const validationErrors = {};  
-    validationErrors.image = err.inner[0].message;
-    return validationErrors;
-  }
-};
 
+//    setting    Component
 
-//    staticImage    Component
-
-const StaticImageInner = () => {
+const SettingInner = () => {
   const apiURL = useSelector((state) => state.apiURL);  
   const nav = useNavigate();
   const dispatch = useDispatch();
@@ -80,25 +60,12 @@ const StaticImageInner = () => {
   const [data, setData] = useState({  
     id: 0,
     key: "",
-    image: undefined
+    value: ""
   });
   const [primaryInput, setPrimaryInput] = useState("")
-  const [deleteImage, setDeleteImage] = useState(false);
-  const [file, setFile] = useState(null);
-  const [previewImage, setPreviewImage] = useState();
 
   function showNotf(ok, message) {
     dispatch({type: "set", toast: (Toast(ok, message))()})
-  }
-
-  function handleDeleteImage() {
-    !previewImage && setDeleteImage(prew => !prew)
-  }
-
-  function handleDeleteDownloadedImage() {
-    setPreviewImage(undefined);
-    setFile(null);
-    document.getElementById("image").value = "";
   }
 
   function handleData(e) {
@@ -119,17 +86,8 @@ const StaticImageInner = () => {
     }))
   }
 
-  useEffect(() => {
-    if (file) {
-      const previewUrl = URL.createObjectURL(file);
-      setPreviewImage(previewUrl);
-    } else {
-      setPreviewImage("");
-    }
-  }, [file])  
-
   function getData(id) {
-    fetch(`${apiURL}/api/staticImage/${id}`)
+    fetch(`${apiURL}/api/setting/${id}`)
       .then(res => {
         if (res.ok) {
           return res.json();
@@ -161,13 +119,9 @@ const StaticImageInner = () => {
     setLoading(true)
 
     const formValidationErrors = await validateForm(data);
-    const imageValidationErrors = file && await validateImage(file);
     
-    if (formValidationErrors || imageValidationErrors) {
-      const err = {
-        ...formValidationErrors,
-        ...imageValidationErrors
-      } 
+    if (formValidationErrors) {
+      const err = {...formValidationErrors} 
 
       showNotf(false, "Please enter correct data")
       setValidationErrors(err); 
@@ -179,17 +133,10 @@ const StaticImageInner = () => {
       const formData = new FormData();
       id != 0 && formData.append('id', id);
       formData.append('key', data.key);
-  
-      if (deleteImage || (id == 0 && !file)) {
-        formData.append('image', null);      
-      } else if(id != 0 && !file) {
-        formData.append('image', data.image);
-      } else {
-        formData.append('image', file);
-      }
+      formData.append('value', data.value);
       
 
-      fetch(`${apiURL}/api/staticImage/${id != 0 ? id : ""}`, {
+      fetch(`${apiURL}/api/setting/${id != 0 ? id : ""}`, {
         method: id == 0 ? "POST" : "PATCH",
         body: formData,
       })
@@ -206,11 +153,9 @@ const StaticImageInner = () => {
         .then((data) => {          
           // console.log('Success:', data);
           if (id==0) {
-            nav(`/staticImage/${data.data.id}`)
+            nav(`/setting/${data.data.id}`)
           } 
           getData(data.data.id);
-          file && handleDeleteDownloadedImage();
-          setDeleteImage(false)
           showNotf(true, data.message);
         })
         .catch((error) => {
@@ -236,7 +181,7 @@ const StaticImageInner = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader className='card__header'>
-            <h3> Static Image </h3>
+            <h3> Setting </h3>
             <div className='card__header--btns'>
                 <CButton
                     color="primary"
@@ -252,7 +197,7 @@ const StaticImageInner = () => {
                     color="secondary"
                     className='flexButton'
                     // onClick={() => null}
-                    href='#/staticImage'
+                    href='#/setting'
                     disabled={loading}
                 >
                   <CIcon icon={cilXCircle}/>
@@ -262,9 +207,8 @@ const StaticImageInner = () => {
           </CCardHeader>
           <CCardBody>
             <p className="text-body-secondary small">
-              You can {id==0 ? "create" : "update"} <i>Static Image</i>
+              You can {id==0 ? "create" : "update"} <i>Setting</i>
             </p>
-
 
             <CForm
               className="row g-3 needs-validation mt-2"
@@ -272,68 +216,8 @@ const StaticImageInner = () => {
               // validated={validated}
               onSubmit={handleSubmit}
             >
-                <CCol md={12} className="mb-3">
-                  <CFormLabel htmlFor="image" className='mb-3'>Image</CFormLabel>
-                  <div className='fileInput'>
-                    {
-                      data?.image &&
-                      <div className={`mb-3 fileInput__currentImage ${previewImage && "shadow-content"}`}>
-                        <p className='mb-1'> Current Image: </p>
-                        <div className={`fileInput__currentImage--image ${deleteImage && "shadow-content"}`}>
-                          <img src={data?.image}/>
-                        </div>
-                        <CFormCheck 
-                          id="flexCheckDefault" 
-                          className='mt-2'
-                          label="Delete Image" 
-                          checked={deleteImage}
-                          onChange={handleDeleteImage}
-                        />
-                      </div>
-                    }
-                    {
-                      (!data?.image && !previewImage) &&
-                      <div className='mb-3'>
-                        <CIcon icon={cilImageBroken} title="There isn't image"/>
-                        <span> There isn't image </span>
-                      </div>
-                    }
-                    {
-                      previewImage &&
-                      <div className='mb-3 fileInput__downloadImage'>
-                        <p className='mb-1'>
-                          { data?.image && "Changed to:" }
-                        </p>
-                        <div className='fileInput__downloadImage--image'>
-                          <img src={previewImage}/>
-
-                          <span 
-                            className='fileInput__downloadImage--delete' 
-                            title='Delete'
-                            onClick={handleDeleteDownloadedImage}
-                          >
-                            <CIcon icon={cilTrash}/>
-                          </span>
-                        </div>
-                      </div>
-                    }
-                  </div>
-                  {
-                    !deleteImage &&
-                    <CFormInput
-                      className='fileInput__input'
-                      type="file"
-                      id="image"
-                      name='image'
-                      accept='image/*'
-                      onChange={(e) => setFile(e.target.files[0])}
-                      feedbackInvalid={validationErrors?.image}
-                      invalid={!!validationErrors?.image}
-                    />
-                  }
-                </CCol>
             
-                <CCol md={12} className="mb-3">
+                <CCol md={2} className="mb-3">
                   <CFormLabel htmlFor="id">
                     ID 
                   </CFormLabel>
@@ -344,7 +228,22 @@ const StaticImageInner = () => {
                     placeholder="Will create automatically"
                     disabled
                     value={data?.id || ""}
+                  />
+                </CCol>
+
+                <CCol md={12} className="mb-3">
+                  <CFormLabel htmlFor="value">
+                    Value
+                  </CFormLabel>
+                  <CFormInput
+                    type="text"
+                    id="value"
+                    name='value'
+                    placeholder="Value"
+                    value={data?.value || ""}
                     onChange={handleData}
+                    feedbackInvalid={validationErrors?.value}
+                    invalid={!!validationErrors?.value}
                   />
                 </CCol>
                 
@@ -396,7 +295,7 @@ const StaticImageInner = () => {
                   <CButton
                     color="secondary"
                     className='flexButton'
-                    href='#/staticImage'
+                    href='#/setting'
                   >
                     <CIcon icon={cilXCircle}/>
                     Cancel
@@ -416,4 +315,4 @@ const StaticImageInner = () => {
   )
 }
 
-export default StaticImageInner
+export default SettingInner

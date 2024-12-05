@@ -5,7 +5,10 @@ const initialState = {
   sidebarShow: true,
   theme: 'light',
   apiURL: "http://localhost:3030",
-  lang: "en",
+  lang: sessionStorage.getItem("lang") || "en",
+  showLangs: false, // not used yet
+  rerenderLang: 0,
+  langs: [],
   toast: null
 }
 

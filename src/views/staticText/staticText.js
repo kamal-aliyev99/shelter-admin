@@ -22,7 +22,6 @@ import {
 import CIcon from '@coreui/icons-react';
 import {
   cilTrash,
-  cilImageBroken,
   cilPencil,
   cilDescription,
   cilPlus,
@@ -30,13 +29,14 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import Toast from '../../components/Toast';
 
-const Lang = () => {
+const StaticText = () => {
   const dispatch = useDispatch();
   const [datas, setDatas] = useState([]);
   const [selectedData, setSelectedData] = useState();
   const [modalVisible, setModalVisible] = useState(false);
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
   const apiURL = useSelector((state) => state.apiURL);  
+  const lang = useSelector((state) => state.lang);  
   const [loadingIDs, setLoadingIDs] = useState([])
 
   function showNotf(ok, message) {
@@ -64,7 +64,7 @@ const Lang = () => {
   }
 
   function getDatas() {
-    fetch(`${apiURL}/api/lang`)
+    fetch(`${apiURL}/api/staticText?lang=${lang}`)
       .then(res => {
         if (res.ok) {
           return res.json();
@@ -85,28 +85,25 @@ const Lang = () => {
 
   useEffect(() => {
     getDatas();
-  }, [apiURL])
+  }, [apiURL, lang])
 
   function deleteData(id) {
     setLoadingIDs(prew => [...prew, id])
 
-    fetch(`${apiURL}/api/lang/${id}`, {
+    fetch(`${apiURL}/api/staticText/${id}`, {
       method: "DELETE",
     })
       .then((res) => {        
         if (res.ok) {
-          dispatch({type: "set", rerenderLang: Date.now()})
+          // return res.json();
           getDatas();
           showNotf(true, "Deleted successfully");
         } else {
-          showNotf(false, `${res.status}: An error occurred while deleting language`);
+          showNotf(false, `${res.status}: An error occurred while deleting Static Text`);
           return res.json().then(err =>{
             console.error(err);
           })
         }
-      })
-      .catch(err => {
-        console.error(err);
       })
       .finally(() => {
         setLoadingIDs(prew => prew.filter(dataID => dataID != id)) 
@@ -120,11 +117,11 @@ const Lang = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader className='card__header'>
-            <h3> Languages </h3>
+            <h3> Static Text </h3>
             <CButton
               color="primary"
               className='flexButton'
-              href='#/lang/0'
+              href='#/staticText/add'
             >
               <CIcon icon={cilPlus}/>
               Create
@@ -132,16 +129,15 @@ const Lang = () => {
           </CCardHeader>
           <CCardBody>
             <p className="text-body-secondary small">
-              You can add, update and delete <i>Languages</i>
+              You can add, update and delete <i>Static Text</i>
             </p>
             <div className='table-container'>
               <CTable striped hover className='main-table'>
                 <CTableHead>
                   <CTableRow>
                     <CTableHeaderCell scope="col">ID</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Image (flag)</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">LangCode</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Name</CTableHeaderCell>
+                    <CTableHeaderCell scope="col">Key</CTableHeaderCell>
+                    <CTableHeaderCell scope="col">Value ({lang})</CTableHeaderCell>
                     <CTableHeaderCell scope="col" className='table__options'>Options</CTableHeaderCell>
                   </CTableRow>
                 </CTableHead>
@@ -154,17 +150,8 @@ const Lang = () => {
                         className="tableRow"
                       >
                         <CTableHeaderCell scope="row">{data.id}</CTableHeaderCell>
-                        <CTableDataCell>
-                          {
-                            data.image ?
-                            <div className='table__image--S'>
-                              <img src={data.image} alt={data.name}/>
-                            </div> :
-                            <CIcon icon={cilImageBroken} title="There isn't image"/>
-                          }
-                        </CTableDataCell>
-                        <CTableDataCell>{data.langCode}</CTableDataCell>
-                        <CTableDataCell>{data.name}</CTableDataCell>
+                        <CTableDataCell>{data.key}</CTableDataCell>
+                        <CTableDataCell>{data.value}</CTableDataCell>
                         <CTableDataCell className='table__options--item'>
                           <CButton
                             color="info"
@@ -180,8 +167,7 @@ const Lang = () => {
                             color="warning"
                             variant="outline"
                             title='Edit'
-                            // disabled="false"
-                            href={`#/lang/${data.id}`}
+                            href={`#/staticText/${data.id}`}
                           >
                             <CIcon icon={cilPencil}/>
                           </CButton>
@@ -189,7 +175,6 @@ const Lang = () => {
                             color="danger"
                             variant="outline"
                             title='Delete'
-                            disabled={data.langCode == "en"}
                             onClick={() => openConfirmModal(data)}
                           >
                             <CIcon icon={cilTrash}/>
@@ -213,7 +198,7 @@ const Lang = () => {
 
             <CModal scrollable visible={modalVisible} onClose={() => closeModal()} className='infoModal'>
               <CModalHeader>
-                <CModalTitle>Language</CModalTitle>
+                <CModalTitle>Static Text</CModalTitle>
               </CModalHeader>
               <CModalBody>
                 
@@ -225,30 +210,15 @@ const Lang = () => {
                 <hr/>
 
                 <div className='infoModal__item'>
-                  <strong> Image (flag) </strong>
-                  {
-                    selectedData?.image ?
-                    <div className='infoModal__item--image'>
-                      <img src={selectedData?.image} alt={selectedData?.name}/>
-                    </div> :
-                    <div className='infoModal__item--icon'>
-                      <CIcon icon={cilImageBroken} title="There isn't image"/>
-                    </div>
-                  }
+                  <strong> Key </strong>
+                  <p> {selectedData?.key} </p>
                 </div>
 
                 <hr/>
 
                 <div className='infoModal__item'>
-                  <strong> LangCode </strong>
-                  <p> {selectedData?.langCode} </p>
-                </div>
-
-                <hr/>
-
-                <div className='infoModal__item'>
-                  <strong> Name </strong>
-                  <p> {selectedData?.name} </p>
+                  <strong> Value ({lang}) </strong>
+                  <p> {selectedData?.value} </p>
                 </div>
 
               </CModalBody>
@@ -275,7 +245,7 @@ const Lang = () => {
                 </CModalTitle>
               </CModalHeader>
               <CModalBody>
-                All translate will delete at <strong>{selectedData?.name}</strong> language! 
+                Do you want to delete <strong>{selectedData?.key}</strong> Static Text? 
               </CModalBody>
               <CModalFooter>
                 <CButton color="secondary" onClick={() => closeConfirmModal()}>
@@ -299,4 +269,4 @@ const Lang = () => {
   )
 }
 
-export default Lang
+export default StaticText

@@ -4,6 +4,12 @@ input:disabled{
     cursor: not-allowed;
 }
 
+.headerLang{
+    width: max-content;
+    margin-right: 5px;
+    text-transform: uppercase;
+}
+
 .flexButton{
     display: flex;
     justify-content: center;
@@ -42,12 +48,19 @@ input:disabled{
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
     gap: 20px;
 
     &--btns{
         display: flex;
         align-items: center;
         gap: 10px;
+    }
+}
+
+@media screen and (max-width: 440px) {
+    .card__header .card__header--btns{
+        display: none;
     }
 }
 

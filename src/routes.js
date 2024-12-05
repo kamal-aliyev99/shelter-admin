@@ -17,6 +17,16 @@ const StaticImageInner = React.lazy(() => import('./views/staticImage/staticImag
 const Partner = React.lazy(() => import('./views/partner/partner'))
 const PartnerInner = React.lazy(() => import('./views/partner/partner-inner'))
 
+const Setting = React.lazy(() => import('./views/setting/setting'))
+const SettingInner = React.lazy(() => import('./views/setting/setting-inner'))
+
+const StaticText = React.lazy(() => import('./views/staticText/staticText'))
+const StaticTextCreate = React.lazy(() => import('./views/staticText/staticText-create'))
+const StaticTextUpdate = React.lazy(() => import('./views/staticText/staticText-update'))
+
+
+
+
 
 
 
@@ -84,6 +94,18 @@ const routes = [
   
   { path: '/partner', name: 'Partners', element: Partner, exact: true},  
   { path: '/partner/:id', name: 'Partner', element: PartnerInner},
+  
+  { path: '/setting', name: 'Settings', element: Setting, exact: true},  
+  { path: '/setting/:id', name: 'Setting', element: SettingInner},
+  
+  { path: '/staticText', name: 'StaticTexts', element: StaticText, exact: true},  
+  { path: '/staticText/add', name: 'staticText', element: StaticTextCreate},   // must be before update
+  { path: '/staticText/:id', name: 'staticText', element: StaticTextUpdate},
+
+
+
+
+
 
 
 

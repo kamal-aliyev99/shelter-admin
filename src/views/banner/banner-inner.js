@@ -267,7 +267,7 @@ const BannerInner = () => {
 
 
             <CForm
-              className="row g-3 needs-validation mt-4"
+              className="row g-3 needs-validation mt-2"
               // noValidate
               // validated={validated}
               onSubmit={handleSubmit}
@@ -344,7 +344,6 @@ const BannerInner = () => {
                     placeholder="Will create automatically"
                     disabled
                     value={data?.id || ""}
-                    onChange={handleData}
                   />
                 </CCol>
                 
