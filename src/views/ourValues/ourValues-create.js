@@ -37,12 +37,18 @@ const validationSchema = Yup.object({
     .of(
       Yup.object().shape({
         langCode: Yup.string().max(10, 'langCode must be at most 10 characters').required('LangCode is required'),
-        value: Yup.string().max(255, 'value must be at most 255 characters')
+        title: Yup.string().max(255, 'value must be at most 255 characters'),
+        desc: Yup.string().optional()
       })
     )
     .min(1, 'At least one translation object is required') // Arrayda minimum 1 obyekt
     .required('Translation is required'),
 });
+
+const imageValidation = Yup.mixed()
+  .test('is-image', 'Only image files are allowed', (value) => {
+    return value && value.type.startsWith('image/');
+  })
 
 const validateForm = async (formData) => {
   try {
@@ -57,10 +63,21 @@ const validateForm = async (formData) => {
   }
 };
 
+const validateImage = async (file) => {
+    try {
+      await imageValidation.validate(file, { abortEarly: false });
+      return;
+    } catch (err) {
+      const validationErrors = {};  
+      validationErrors.image = err.inner[0].message;
+      return validationErrors;
+    }
+  };
 
-//    staticText    Component
 
-const StaticTextCreate = () => {  
+//    OurValuesCreate    Component
+
+const OurValuesCreate = () => {  
   const id = 0;  
   const apiURL = useSelector((state) => state.apiURL);  
   const langs = useSelector((state) => state.langs);  
@@ -355,4 +372,4 @@ const StaticTextCreate = () => {
   )
 }
 
-export default StaticTextCreate
+export default OurValuesCreate

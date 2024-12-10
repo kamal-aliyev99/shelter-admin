@@ -24,6 +24,12 @@ const StaticText = React.lazy(() => import('./views/staticText/staticText'))
 const StaticTextCreate = React.lazy(() => import('./views/staticText/staticText-create'))
 const StaticTextUpdate = React.lazy(() => import('./views/staticText/staticText-update'))
 
+const OurValue = React.lazy(() => import('./views/ourValues/ourValues'))
+const OurValueCreate = React.lazy(() => import('./views/ourValues/ourValues-create'))
+const OurValueUpdate = React.lazy(() => import('./views/ourValues/ourValues-update'))
+
+
+
 
 
 
@@ -102,6 +108,11 @@ const routes = [
   { path: '/staticText/add', name: 'staticText', element: StaticTextCreate},   // must be before update
   { path: '/staticText/:id', name: 'staticText', element: StaticTextUpdate},
 
+  { path: '/ourValues', name: 'OurValue', element: OurValue, exact: true},  
+  { path: '/ourValues/add', name: 'OurValue', element: OurValueCreate},   // must be before update
+  { path: '/ourValues/:id', name: 'OurValue', element: OurValueUpdate},
+
+  
 
 
 
