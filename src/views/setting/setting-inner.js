@@ -248,14 +248,14 @@ const SettingInner = () => {
                 </CCol>
                 
                 <CCol md={6} className="mb-3">
-                  <CFormLabel htmlFor="key">
+                  <CFormLabel htmlFor="keyInput">
                     Key
                     <span className='inputRequired' title='Required'>*</span>
                   </CFormLabel>
                   <CFormInput
                     type="text"
-                    id="key"
-                    name="key"
+                    id="keyInput"
+                    name="keyInput"
                     placeholder="Key"
                     value={primaryInput}
                     onChange={handlePrimaryInput}
@@ -267,7 +267,7 @@ const SettingInner = () => {
 
                 <CCol md={6} className="mb-3">
                   <CFormLabel htmlFor="key">
-                    Key - slug
+                    Key (formatted)
                     {/* <span className='inputRequired' title='Required'>*</span> */}
                   </CFormLabel>
                   <CFormInput

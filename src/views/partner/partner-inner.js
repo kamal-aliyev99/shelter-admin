@@ -337,7 +337,7 @@ const PartnerInner = () => {
                 
                 <CCol md={6} className="mb-3">
                   <CFormLabel htmlFor="title">
-                    Key
+                    Title
                     <span className='inputRequired' title='Required'>*</span>
                   </CFormLabel>
                   <CFormInput

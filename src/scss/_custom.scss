@@ -4,6 +4,11 @@ input:disabled{
     cursor: not-allowed;
 }
 
+.form-control.form__textarea{
+    min-height: 80px;
+    max-height: 180px;
+}
+
 .headerLang{
     width: max-content;
     margin-right: 5px;

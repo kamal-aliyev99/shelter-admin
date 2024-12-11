@@ -137,6 +137,7 @@ const OurValue = () => {
                 <CTableHead>
                   <CTableRow>
                     <CTableHeaderCell scope="col">ID</CTableHeaderCell>
+                    <CTableHeaderCell scope="col">Image</CTableHeaderCell>
                     <CTableHeaderCell scope="col">Slug</CTableHeaderCell>
                     <CTableHeaderCell scope="col">Title ({lang})</CTableHeaderCell>
                     <CTableHeaderCell scope="col">Description ({lang})</CTableHeaderCell>
@@ -162,6 +163,7 @@ const OurValue = () => {
                           }
                         </CTableDataCell>
                         <CTableDataCell>{data.slug}</CTableDataCell>
+                        <CTableDataCell>{data.title}</CTableDataCell>
                         <CTableDataCell>
                             {
                                 data.desc ||

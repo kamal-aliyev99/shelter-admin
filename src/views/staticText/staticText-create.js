@@ -132,7 +132,7 @@ const StaticTextCreate = () => {
 
   async function handleSubmit(e) {
     e?.preventDefault();
-    // setLoading(true)
+    setLoading(true)
 
     const formValidationErrors = await validateForm(data);
     
@@ -237,14 +237,14 @@ const StaticTextCreate = () => {
             >
                 
                 <CCol md={6} className="mb-3">
-                  <CFormLabel htmlFor="key">
+                  <CFormLabel htmlFor="keyInput">
                     Key
                     <span className='inputRequired' title='Required'>*</span>
                   </CFormLabel>
                   <CFormInput
                     type="text"
-                    id="key"
-                    name="key"
+                    id="keyInput"
+                    name="keyInput"
                     placeholder="Key"
                     value={primaryInput}
                     onChange={handlePrimaryInput}
@@ -256,7 +256,7 @@ const StaticTextCreate = () => {
 
                 <CCol md={6} className="mb-3">
                   <CFormLabel htmlFor="key">
-                    Key - slug
+                    Key (formatted)
                   </CFormLabel>
                   <CFormInput
                     type="text"
@@ -264,7 +264,7 @@ const StaticTextCreate = () => {
                     name="key"
                     placeholder="Will create automatically"
                     value={data?.key}
-                    onChange={handleData}
+                    // onChange={handleData}
                     disabled
                   />
                 </CCol>
@@ -298,7 +298,7 @@ const StaticTextCreate = () => {
                             
                             <CCol md={12} className="mb-3">
                               <CFormLabel htmlFor={`value-${data.langCode}`}>
-                                Value ({data.langCode}) {index}
+                                Value ({data.langCode}) 
                               </CFormLabel>
                               <CFormInput
                                 type="text"

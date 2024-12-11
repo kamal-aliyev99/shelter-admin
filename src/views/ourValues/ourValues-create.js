@@ -8,6 +8,7 @@ import {
   CForm,
   CFormInput,
   CFormLabel,
+  CFormTextarea,
   CRow,
   CSpinner,
   CTab,
@@ -20,6 +21,8 @@ import CIcon from '@coreui/icons-react';
 import {
   cilSave,
   cilXCircle,
+  cilImageBroken,
+  cilTrash
 } from '@coreui/icons'
 import { useDispatch, useSelector } from 'react-redux';
 import { json, useNavigate, useParams } from 'react-router-dom';
@@ -32,7 +35,7 @@ import slugify from 'slugify';
 //    V A L I D A T I O N
 
 const validationSchema = Yup.object({
-  key: Yup.string().max(255, 'key must be at most 255 characters').required('key is required'),
+  slug: Yup.string().max(255, 'slug must be at most 255 characters').required('slug is required'),
   translation: Yup.array()
     .of(
       Yup.object().shape({
@@ -78,7 +81,7 @@ const validateImage = async (file) => {
 //    OurValuesCreate    Component
 
 const OurValuesCreate = () => {  
-  const id = 0;  
+  // const id = 0;  
   const apiURL = useSelector((state) => state.apiURL);  
   const langs = useSelector((state) => state.langs);  
   const nav = useNavigate();
@@ -86,14 +89,36 @@ const OurValuesCreate = () => {
   const [loading, setLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState();
   const [data, setData] = useState({  
-    key: "",
+    slug: "",
     translation: []
   });
-  const [primaryInput, setPrimaryInput] = useState("")
+  // const [primaryInput, setPrimaryInput] = useState("")
+  // const [deleteImage, setDeleteImage] = useState(false);
+  const [file, setFile] = useState(null);
+  const [previewImage, setPreviewImage] = useState();
 
   function showNotf(ok, message) {
     dispatch({type: "set", toast: (Toast(ok, message))()})
   }
+
+  // function handleDeleteImage() {
+  //   !previewImage && setDeleteImage(prew => !prew)
+  // }
+
+  function handleDeleteDownloadedImage() {
+    setPreviewImage(undefined);
+    setFile(null);
+    document.getElementById("image").value = "";
+  }
+
+  useEffect(() => {
+    if (file) {
+      const previewUrl = URL.createObjectURL(file);
+      setPreviewImage(previewUrl);
+    } else {
+      setPreviewImage("");
+    }
+  }, [file]) 
 
   useEffect(() => {
     if (!data.translation.length) {
@@ -102,7 +127,8 @@ const OurValuesCreate = () => {
         translation : 
           langs.map(lang => ({
             langCode: lang,
-            value: ""
+            title: "",
+            desc: ""
           }))
       }))
     }
@@ -111,9 +137,10 @@ const OurValuesCreate = () => {
   function handleData(e, lang) {
     const name = e.target.name;
     const value = e.target.value;
+    
     if (lang) {
       const currentTranslation = data.translation.find((item) => item.langCode == lang)
-      const field = name.split(`-${lang}`)[0]        
+      const field = name.split(`-${lang}`)[0];     
 
       setData(prew => ({
         ...prew,
@@ -125,6 +152,13 @@ const OurValuesCreate = () => {
           }
         ]
       }))
+
+      if (lang == "en" && field == "title") {
+        setData(prew => ({
+          ...prew,
+          slug: slugify(value, { lower: true, strict: true })
+        }))
+      }
       
     } else {
       setData(prew => {
@@ -137,14 +171,14 @@ const OurValuesCreate = () => {
   }
   
 
-  function handlePrimaryInput(e) {
-    const text = e.target.value;
-    setPrimaryInput(text);
-    setData(prew => ({
-      ...prew,
-      key: slugify(text, { lower: true, strict: true })
-    }))
-  }  
+  // function handlePrimaryInput(e) {
+  //   const text = e.target.value;
+  //   setPrimaryInput(text);
+  //   setData(prew => ({
+  //     ...prew,
+  //     slug: slugify(text, { lower: true, strict: true })
+  //   }))
+  // }  
   
 
   async function handleSubmit(e) {
@@ -152,10 +186,11 @@ const OurValuesCreate = () => {
     // setLoading(true)
 
     const formValidationErrors = await validateForm(data);
+    const imageValidationErrors = file && await validateImage(file);
     
-    if (formValidationErrors) {
+    if (formValidationErrors || imageValidationErrors) {
 
-      let err = {...formValidationErrors} 
+      let err = {...formValidationErrors, ...imageValidationErrors} 
 
       for (const [key, value] of Object.entries(formValidationErrors)) {
         if (key.includes("translation[")) {
@@ -172,18 +207,20 @@ const OurValuesCreate = () => {
 
     } else {
       data.translation.forEach(item => {
-        if (!item.value) {
-          item.value = data.key;
+        if (!item.title) {
+          item.title = data.slug;
         }
       })
       
       setValidationErrors(undefined);
 
       const formData = new FormData();
-      formData.append('key', data.key);
+      formData.append('slug', data.slug);
       formData.append('translation', JSON.stringify(data.translation));
+      formData.append("image", file || null) 
 
-      fetch(`${apiURL}/api/staticText`, {
+
+      fetch(`${apiURL}/api/ourValues`, {
         method: "POST",
         body: formData,
       })
@@ -192,14 +229,14 @@ const OurValuesCreate = () => {
             return res.json();
           } else {
             return res.json().then(err =>{
-              // console.error(err);
+              console.error(err);
               throw new Error(`${res.status}: ${err.message}`)
             })
           }
         })
         .then((data) => {          
-          // console.log('Success:', data);
-          nav(`/staticText/${data.data.id}`)
+          console.log('Success:', data);
+          nav(`/ourValues/${data.data.id}`)
           showNotf(true, data.message);
         })
         .catch((error) => {
@@ -217,7 +254,7 @@ const OurValuesCreate = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader className='card__header'>
-            <h3> StaticText Create </h3>
+            <h3> Our Value Create </h3>
             <div className='card__header--btns'>
                 <CButton
                     color="primary"
@@ -233,7 +270,7 @@ const OurValuesCreate = () => {
                     color="secondary"
                     className='flexButton'
                     // onClick={() => null}
-                    href='#/staticText'
+                    href='#/ourValues'
                     disabled={loading}
                 >
                   <CIcon icon={cilXCircle}/>
@@ -252,112 +289,164 @@ const OurValuesCreate = () => {
               // validated={validated}
               onSubmit={handleSubmit}
             >
-                
-                <CCol md={6} className="mb-3">
-                  <CFormLabel htmlFor="key">
-                    Key
-                    <span className='inputRequired' title='Required'>*</span>
-                  </CFormLabel>
-                  <CFormInput
-                    type="text"
-                    id="key"
-                    name="key"
-                    placeholder="Key"
-                    value={primaryInput}
-                    onChange={handlePrimaryInput}
-                    required
-                    feedbackInvalid={validationErrors?.key}
-                    invalid={!!validationErrors?.key}
-                  />
-                </CCol>
+              <CCol md={12} className="mb-3">
+                <CFormLabel htmlFor="image" className='mb-3'>Image</CFormLabel>
+                <div className='fileInput'>
+                  {
+                    previewImage &&
+                    <div className='mb-3 fileInput__downloadImage'>
+                      <div className='fileInput__downloadImage--image'>
+                        <img src={previewImage}/>
 
-                <CCol md={6} className="mb-3">
-                  <CFormLabel htmlFor="key">
-                    Key - slug
-                  </CFormLabel>
-                  <CFormInput
-                    type="text"
-                    id="key"
-                    name="key"
-                    placeholder="Will create automatically"
-                    value={data?.key}
-                    onChange={handleData}
-                    disabled
-                  />
-                </CCol>
-
-                <CCol md={12} className='mb-3'>
-                  <span> Translations: </span>
-                  <CTabs activeItemKey="en">
-                    <CTabList variant="tabs">
-                      {
-                        langs?.length &&
-                        langs.map(lang => (
-                          <CTab
-                            itemKey={lang} 
-                            key={lang}
-                            className={
-                              validationErrors && Object.keys(validationErrors)?.some(i => i?.split("-")[1] == lang) ?
-                              "translationError" :
-                              ""
-                            }
-                          >
-                            {lang.toUpperCase()}
-                          </CTab>
-                        ))
-                      }
-                    </CTabList>
-                    <CTabContent>
-                      {
-                        data?.translation?.length &&
-                        data?.translation?.map((data, index) => (
-                          <CTabPanel className="p-3" itemKey={data.langCode} key={data.langCode}>
-                            
-                            <CCol md={12} className="mb-3">
-                              <CFormLabel htmlFor={`value-${data.langCode}`}>
-                                Value ({data.langCode}) {index}
-                              </CFormLabel>
-                              <CFormInput
-                                type="text"
-                                id={`value-${data.langCode}`}
-                                name={`value-${data.langCode}`}
-                                placeholder={`Value-${data.langCode} (default same as key)`}
-                                value={data?.value}
-                                onChange={(e) => handleData(e, data.langCode)}
-                                feedbackInvalid={validationErrors && validationErrors[`value-${data.langCode}`]} 
-                                invalid={!!validationErrors && !!validationErrors[`value-${data.langCode}`]}
-                              />
-                            </CCol>
-
-                          </CTabPanel>
-                        ))
-                      }
-                    </CTabContent>
-                  </CTabs>
-                </CCol>
-
-                
-
-                <div className='card__header--btns'>
-                  <CButton
-                    // type='submit'
-                    color="primary"
-                    className='flexButton'
-                    onClick={handleSubmit}
-                  >
-                    <CIcon icon={cilSave}/>
-                    Save
-                  </CButton>
-
-                  <CButton
-                    color="secondary"
-                    className='flexButton'
-                    href='#/staticText'
-                  >
-                    <CIcon icon={cilXCircle}/>
-                    Cancel
-                  </CButton>
+                        <span 
+                          className='fileInput__downloadImage--delete' 
+                          title='Delete'
+                          onClick={handleDeleteDownloadedImage}
+                        >
+                          <CIcon icon={cilTrash}/>
+                        </span>
+                      </div>
+                    </div>
+                  }
                 </div>
+                
+                <CFormInput
+                  className='fileInput__input'
+                  type="file"
+                  id="image"
+                  name='image'
+                  accept='image/*'
+                  onChange={(e) => setFile(e.target.files[0])}
+                  feedbackInvalid={validationErrors?.image}
+                  invalid={!!validationErrors?.image}
+                />
+              </CCol>
+
+              <CCol md={6} className="mb-3">
+                <CFormLabel htmlFor="slug">
+                  Slug (formatted)
+                </CFormLabel>
+                <CFormInput
+                  type="text"
+                  id="slug"
+                  name="slug"    // there are 2 name="slug"  ???!!!
+                  placeholder="Will create automatically"
+                  value={data?.slug}
+                  onChange={handleData}
+                  disabled
+                />
+              </CCol>
+
+              <CCol md={12} className='mb-3'>
+                <span> Translations: </span>
+                <CTabs activeItemKey="en">
+                  <CTabList variant="tabs">
+                    {
+                      langs?.length &&
+                      langs.map(lang => (
+                        <CTab
+                          itemKey={lang} 
+                          key={lang}
+                          disabled={
+                            !data?.slug && lang != "en"
+                          }
+                          className={
+                            validationErrors && Object.keys(validationErrors)?.some(i => i?.split("-")[1] == lang) ?
+                            "translationError" :
+                            ""
+                          }
+                        >
+                          {lang.toUpperCase()}
+                        </CTab>
+                      ))
+                    }
+                  </CTabList>
+                  <CTabContent>
+                    {
+                      data?.translation?.length &&
+                      data?.translation?.map((data, index) => (
+                        <CTabPanel className="p-3" itemKey={data.langCode} key={data.langCode}>
+                          
+                          <CCol md={12} className="mb-3">
+                            <CFormLabel htmlFor={`title-${data.langCode}`}>
+                              Title ({data.langCode}) 
+                              {
+                                data.langCode == "en" && 
+                                <span className='inputRequired' title='Required'>*</span>
+                              }
+                            </CFormLabel>
+                            <CFormInput
+                              type="text"
+                              id={`title-${data.langCode}`}
+                              name={`title-${data.langCode}`}
+                              placeholder={
+                                data.langCode == "en" ?
+                                `title-${data.langCode} (Required for Slug)` :
+                                `title-${data.langCode} (default same as slug)`
+                              }
+                              value={data?.title}
+                              onChange={(e) => handleData(e, data.langCode)}
+                              feedbackInvalid={validationErrors && validationErrors[`title-${data.langCode}`]} 
+                              invalid={!!validationErrors && !!validationErrors[`title-${data.langCode}`]}
+                            />
+                          </CCol>
+
+                          <CCol md={12} className="mb-3">
+                            <CFormLabel htmlFor={`desc-${data.langCode}`}>
+                              Description ({data.langCode})
+                            </CFormLabel>
+
+                            {/* <CFormInput
+                              type="text"
+                              id={`desc-${data.langCode}`}
+                              name={`desc-${data.langCode}`}
+                              placeholder={ `desc-${data.langCode}`}
+                              value={data?.desc}
+                              onChange={(e) => handleData(e, data.langCode)}
+                              feedbackInvalid={validationErrors && validationErrors[`desc-${data.langCode}`]} 
+                              invalid={!!validationErrors && !!validationErrors[`desc-${data.langCode}`]}
+                            /> */}
+                            <CFormTextarea
+                              className='form__textarea'
+                              id={`desc-${data.langCode}`}
+                              name={`desc-${data.langCode}`}
+                              placeholder={ `description-${data.langCode}`}
+                              value={data?.desc}
+                              onChange={(e) => handleData(e, data.langCode)}
+                              feedbackInvalid={validationErrors && validationErrors[`desc-${data.langCode}`]} 
+                              invalid={!!validationErrors && !!validationErrors[`desc-${data.langCode}`]}
+                            />
+                          </CCol>
+
+                        </CTabPanel>
+                      ))
+                    }
+                  </CTabContent>
+                </CTabs>
+              </CCol>
+
+              
+
+              <div className='card__header--btns'>
+                <CButton
+                  // type='submit'
+                  color="primary"
+                  className='flexButton'
+                  onClick={handleSubmit}
+                >
+                  <CIcon icon={cilSave}/>
+                  Save
+                </CButton>
+
+                <CButton
+                  color="secondary"
+                  className='flexButton'
+                  href='#/ourValues'
+                >
+                  <CIcon icon={cilXCircle}/>
+                  Cancel
+                </CButton>
+              </div>
             </CForm>
             {
               loading &&

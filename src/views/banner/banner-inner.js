@@ -348,14 +348,14 @@ const BannerInner = () => {
                 </CCol>
                 
                 <CCol md={6} className="mb-3">
-                  <CFormLabel htmlFor="page">
+                  <CFormLabel htmlFor="pageInput">
                     Page Name
                     <span className='inputRequired' title='Required'>*</span>
                   </CFormLabel>
                   <CFormInput
                     type="text"
-                    id="page"
-                    name="page"
+                    id="pageInput"
+                    name="pageInput"
                     placeholder="Page Name"
                     value={primaryInput}
                     onChange={handlePrimaryInput}
@@ -367,7 +367,7 @@ const BannerInner = () => {
 
                 <CCol md={6} className="mb-3">
                   <CFormLabel htmlFor="page">
-                    Page slug
+                    Page name (formatted)
                     {/* <span className='inputRequired' title='Required'>*</span> */}
                   </CFormLabel>
                   <CFormInput
