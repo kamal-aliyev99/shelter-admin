@@ -29,7 +29,7 @@ import slugify from 'slugify';
 const validationSchema = Yup.object({
   id: Yup.number().positive("ID cannot be less than 0"),
   key: Yup.string().max(255, 'Key must be at most 255 characters').required('key is required'),
-  value: Yup.string().max(255, 'Value must be at most 255 characters').required("Value is required"),
+  title: Yup.string().max(255, 'Title must be at most 255 characters').required("Title is required"),
   translationID : Yup.number().positive().nullable(), // hemin dilde tercume yoxdusa null,, request'de gonderilmeyecek!
   langCode: Yup.string().max(10, "LangCode must be at most 10 characters!")
 });
@@ -48,9 +48,9 @@ const validateForm = async (formData) => {
 };
 
 
-//    setting    Component
+//    FindUsUpdate    Component
 
-const StaticTextUpdate = () => {
+const FindUsUpdate = () => {
   const apiURL = useSelector((state) => state.apiURL);  
   const lang = useSelector((state) => state.lang);  
   const dispatch = useDispatch();
@@ -62,7 +62,7 @@ const StaticTextUpdate = () => {
   const [data, setData] = useState({  
     id: 0,
     key: "",
-    value: "",
+    title: "",
     translationID : null,
     langCode: lang
   });
@@ -91,7 +91,7 @@ const StaticTextUpdate = () => {
   }
 
   function getData(id) {
-    fetch(`${apiURL}/api/staticText/${id}?lang=${lang}`)
+    fetch(`${apiURL}/api/findUs/${id}?lang=${lang}`)
       .then(res => {
         if (res.ok) {
           return res.json();
@@ -109,7 +109,7 @@ const StaticTextUpdate = () => {
           setData({
             ...data,
             langCode: lang,
-            value: ""
+            title: ""
           })
         }
         
@@ -144,11 +144,11 @@ const StaticTextUpdate = () => {
       const formData = new FormData();
       formData.append('id', id);
       formData.append('key', data.key);
-      formData.append('value', data.value);
+      formData.append('title', data.title);
       data.translationID && formData.append("translationID", data.translationID); 
       formData.append("langCode", data.langCode);
 
-      fetch(`${apiURL}/api/staticText/${id}`, {
+      fetch(`${apiURL}/api/findUs/${id}`, {
         method: "PATCH",
         body: formData,
       })
@@ -190,7 +190,7 @@ const StaticTextUpdate = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader className='card__header'>
-            <h3> Static Text Update </h3>
+            <h3> Find Us Update </h3>
             <div className='card__header--btns'>
                 <CButton
                   color="primary"
@@ -206,7 +206,7 @@ const StaticTextUpdate = () => {
                   color="secondary"
                   className='flexButton'
                   // onClick={() => null}
-                  href='#/staticText'
+                  href='#/findUs'
                   disabled={loading}
                 >
                   <CIcon icon={cilXCircle}/>
@@ -216,7 +216,7 @@ const StaticTextUpdate = () => {
           </CCardHeader>
           <CCardBody>
             <p className="text-body-secondary small">
-              You can update <i>Static Text</i>
+              You can update <i>Find Us</i>
             </p>
 
             <CForm
@@ -303,19 +303,19 @@ const StaticTextUpdate = () => {
                 </CCol>
 
                 <CCol md={12} className="mb-3">
-                  <CFormLabel htmlFor="value">
-                    Value ({lang})
+                  <CFormLabel htmlFor="title">
+                    Title ({lang})
                     <span className='inputRequired' title='Required'>*</span>
                   </CFormLabel>
                   <CFormInput
                     type="text"
-                    id="value"
-                    name='value'
-                    placeholder={data?.translationID ? "Value" : "No Content this language"}
-                    value={data?.value || ""}
+                    id="title"
+                    name='title'
+                    placeholder={data?.translationID ? "Title" : "No Content this language"}
+                    value={data?.title || ""}
                     onChange={handleData}
-                    feedbackInvalid={validationErrors?.value}
-                    invalid={!!validationErrors?.value}
+                    feedbackInvalid={validationErrors?.title}
+                    invalid={!!validationErrors?.title}
                   />
                 </CCol>
 
@@ -333,7 +333,7 @@ const StaticTextUpdate = () => {
                   <CButton
                     color="secondary"
                     className='flexButton'
-                    href='#/staticText'
+                    href='#/findUs'
                   >
                     <CIcon icon={cilXCircle}/>
                     Cancel
@@ -353,4 +353,4 @@ const StaticTextUpdate = () => {
   )
 }
 
-export default StaticTextUpdate
+export default FindUsUpdate

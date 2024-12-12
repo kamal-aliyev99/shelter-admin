@@ -28,6 +28,10 @@ const OurValue = React.lazy(() => import('./views/ourValues/ourValues'))
 const OurValueCreate = React.lazy(() => import('./views/ourValues/ourValues-create'))
 const OurValueUpdate = React.lazy(() => import('./views/ourValues/ourValues-update'))
 
+const FindUs = React.lazy(() => import('./views/findUs/findUs'))
+const FindUsCreate = React.lazy(() => import('./views/findUs/findUs-create'))
+const FindUsUpdate = React.lazy(() => import('./views/findUs/findUs-update'))
+
 
 
 
@@ -112,7 +116,9 @@ const routes = [
   { path: '/ourValues/add', name: 'OurValue', element: OurValueCreate},   // must be before update
   { path: '/ourValues/:id', name: 'OurValue', element: OurValueUpdate},
 
-  
+  { path: '/findUs', name: 'OurValue', element: FindUs, exact: true},  
+  { path: '/findUs/add', name: 'OurValue', element: FindUsCreate},   // must be before update
+  { path: '/findUs/:id', name: 'OurValue', element: FindUsUpdate},
 
 
 

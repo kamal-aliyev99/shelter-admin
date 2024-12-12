@@ -37,7 +37,7 @@ const validationSchema = Yup.object({
     .of(
       Yup.object().shape({
         langCode: Yup.string().max(10, 'langCode must be at most 10 characters').required('LangCode is required'),
-        value: Yup.string().max(255, 'value must be at most 255 characters')
+        title: Yup.string().max(255, 'title must be at most 255 characters')
       })
     )
     .min(1, 'At least one translation object is required') // Arrayda minimum 1 obyekt
@@ -60,7 +60,7 @@ const validateForm = async (formData) => {
 
 //    staticText    Component
 
-const StaticTextCreate = () => {  
+const FindUsCreate = () => {  
   const apiURL = useSelector((state) => state.apiURL);  
   const langs = useSelector((state) => state.langs);  
   const nav = useNavigate();
@@ -84,7 +84,7 @@ const StaticTextCreate = () => {
         translation : 
           langs.map(lang => ({
             langCode: lang,
-            value: ""
+            title: ""
           }))
       }))
     }
@@ -154,8 +154,8 @@ const StaticTextCreate = () => {
 
     } else {
       data.translation.forEach(item => {
-        if (!item.value) {
-          item.value = data.key;
+        if (!item.title) {
+          item.title = data.key;
         }
       })
       
@@ -165,7 +165,12 @@ const StaticTextCreate = () => {
       formData.append('key', data.key);
       formData.append('translation', JSON.stringify(data.translation));
 
-      fetch(`${apiURL}/api/staticText`, {
+      for (const element of formData) {
+        console.log(element);
+        
+      }
+
+      fetch(`${apiURL}/api/findUs`, {
         method: "POST",
         body: formData,
       })
@@ -181,7 +186,7 @@ const StaticTextCreate = () => {
         })
         .then((data) => {          
           // console.log('Success:', data);
-          nav(`/staticText/${data.data.id}`)
+          nav(`/findUs/${data.data.id}`)
           showNotf(true, data.message);
         })
         .catch((error) => {
@@ -199,7 +204,7 @@ const StaticTextCreate = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader className='card__header'>
-            <h3> StaticText Create </h3>
+            <h3> Find Us Create </h3>
             <div className='card__header--btns'>
                 <CButton
                     color="primary"
@@ -215,7 +220,7 @@ const StaticTextCreate = () => {
                     color="secondary"
                     className='flexButton'
                     // onClick={() => null}
-                    href='#/staticText'
+                    href='#/findUs'
                     disabled={loading}
                 >
                   <CIcon icon={cilXCircle}/>
@@ -225,7 +230,7 @@ const StaticTextCreate = () => {
           </CCardHeader>
           <CCardBody>
             <p className="text-body-secondary small">
-              You can create <i>Static Text</i>
+              You can create <i>Find Us</i>
             </p>
 
             <CForm
@@ -296,18 +301,18 @@ const StaticTextCreate = () => {
                           <CTabPanel className="p-3" itemKey={data.langCode} key={data.langCode}>
                             
                             <CCol md={12} className="mb-3">
-                              <CFormLabel htmlFor={`value-${data.langCode}`}>
-                                Value ({data.langCode}) 
+                              <CFormLabel htmlFor={`title-${data.langCode}`}>
+                                Title ({data.langCode}) 
                               </CFormLabel>
                               <CFormInput
                                 type="text"
-                                id={`value-${data.langCode}`}
-                                name={`value-${data.langCode}`}
-                                placeholder={`Value-${data.langCode} (default same as key)`}
-                                value={data?.value}
+                                id={`title-${data.langCode}`}
+                                name={`title-${data.langCode}`}
+                                placeholder={`title-${data.langCode} (default same as key)`}
+                                value={data?.title}
                                 onChange={(e) => handleData(e, data.langCode)}
-                                feedbackInvalid={validationErrors && validationErrors[`value-${data.langCode}`]} 
-                                invalid={!!validationErrors && !!validationErrors[`value-${data.langCode}`]}
+                                feedbackInvalid={validationErrors && validationErrors[`title-${data.langCode}`]} 
+                                invalid={!!validationErrors && !!validationErrors[`title-${data.langCode}`]}
                               />
                             </CCol>
 
@@ -334,7 +339,7 @@ const StaticTextCreate = () => {
                   <CButton
                     color="secondary"
                     className='flexButton'
-                    href='#/staticText'
+                    href='#/findUs'
                   >
                     <CIcon icon={cilXCircle}/>
                     Cancel
@@ -354,4 +359,4 @@ const StaticTextCreate = () => {
   )
 }
 
-export default StaticTextCreate
+export default FindUsCreate
