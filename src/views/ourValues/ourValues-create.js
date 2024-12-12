@@ -21,7 +21,6 @@ import CIcon from '@coreui/icons-react';
 import {
   cilSave,
   cilXCircle,
-  cilImageBroken,
   cilTrash
 } from '@coreui/icons'
 import { useDispatch, useSelector } from 'react-redux';
@@ -81,7 +80,6 @@ const validateImage = async (file) => {
 //    OurValuesCreate    Component
 
 const OurValuesCreate = () => {  
-  // const id = 0;  
   const apiURL = useSelector((state) => state.apiURL);  
   const langs = useSelector((state) => state.langs);  
   const nav = useNavigate();
@@ -92,18 +90,12 @@ const OurValuesCreate = () => {
     slug: "",
     translation: []
   });
-  // const [primaryInput, setPrimaryInput] = useState("")
-  // const [deleteImage, setDeleteImage] = useState(false);
   const [file, setFile] = useState(null);
   const [previewImage, setPreviewImage] = useState();
 
   function showNotf(ok, message) {
     dispatch({type: "set", toast: (Toast(ok, message))()})
   }
-
-  // function handleDeleteImage() {
-  //   !previewImage && setDeleteImage(prew => !prew)
-  // }
 
   function handleDeleteDownloadedImage() {
     setPreviewImage(undefined);
@@ -168,22 +160,11 @@ const OurValuesCreate = () => {
         }
       })
     }
-  }
-  
-
-  // function handlePrimaryInput(e) {
-  //   const text = e.target.value;
-  //   setPrimaryInput(text);
-  //   setData(prew => ({
-  //     ...prew,
-  //     slug: slugify(text, { lower: true, strict: true })
-  //   }))
-  // }  
-  
+  } 
 
   async function handleSubmit(e) {
     e?.preventDefault();
-    // setLoading(true)
+    setLoading(true)
 
     const formValidationErrors = await validateForm(data);
     const imageValidationErrors = file && await validateImage(file);
@@ -229,13 +210,13 @@ const OurValuesCreate = () => {
             return res.json();
           } else {
             return res.json().then(err =>{
-              console.error(err);
+              // console.error(err);
               throw new Error(`${res.status}: ${err.message}`)
             })
           }
         })
         .then((data) => {          
-          console.log('Success:', data);
+          // console.log('Success:', data);
           nav(`/ourValues/${data.data.id}`)
           showNotf(true, data.message);
         })
@@ -280,7 +261,7 @@ const OurValuesCreate = () => {
           </CCardHeader>
           <CCardBody>
             <p className="text-body-secondary small">
-              You can create <i>Static Text</i>
+              You can create <i>Our Value</i>
             </p>
 
             <CForm
@@ -329,7 +310,7 @@ const OurValuesCreate = () => {
                 <CFormInput
                   type="text"
                   id="slug"
-                  name="slug"    // there are 2 name="slug"  ???!!!
+                  name="slug"    
                   placeholder="Will create automatically"
                   value={data?.slug}
                   onChange={handleData}
@@ -396,16 +377,6 @@ const OurValuesCreate = () => {
                               Description ({data.langCode})
                             </CFormLabel>
 
-                            {/* <CFormInput
-                              type="text"
-                              id={`desc-${data.langCode}`}
-                              name={`desc-${data.langCode}`}
-                              placeholder={ `desc-${data.langCode}`}
-                              value={data?.desc}
-                              onChange={(e) => handleData(e, data.langCode)}
-                              feedbackInvalid={validationErrors && validationErrors[`desc-${data.langCode}`]} 
-                              invalid={!!validationErrors && !!validationErrors[`desc-${data.langCode}`]}
-                            /> */}
                             <CFormTextarea
                               className='form__textarea'
                               id={`desc-${data.langCode}`}
@@ -424,8 +395,6 @@ const OurValuesCreate = () => {
                   </CTabContent>
                 </CTabs>
               </CCol>
-
-              
 
               <div className='card__header--btns'>
                 <CButton

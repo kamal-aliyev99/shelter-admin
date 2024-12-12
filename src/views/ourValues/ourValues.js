@@ -118,7 +118,7 @@ const OurValue = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader className='card__header'>
-            <h3> Static Text </h3>
+            <h3> Our Values </h3>
             <CButton
               color="primary"
               className='flexButton'

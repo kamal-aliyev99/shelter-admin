@@ -145,7 +145,7 @@ const StaticTextUpdate = () => {
       formData.append('id', id);
       formData.append('key', data.key);
       formData.append('value', data.value);
-      data.translationID && formData.append("translationID", data.translationID); // hemin dilde tercume yoxdursa ???
+      data.translationID && formData.append("translationID", data.translationID); 
       formData.append("langCode", data.langCode);
 
       fetch(`${apiURL}/api/staticText/${id}`, {
@@ -269,14 +269,14 @@ const StaticTextUpdate = () => {
                 </CCol>
                 
                 <CCol md={6} className="mb-3">
-                  <CFormLabel htmlFor="key">
+                  <CFormLabel htmlFor="keyInput">
                     Key
                     <span className='inputRequired' title='Required'>*</span>
                   </CFormLabel>
                   <CFormInput
                     type="text"
-                    id="key"
-                    name="key"
+                    id="keyInput"
+                    name="keyInput"
                     placeholder="Key"
                     value={primaryInput}
                     onChange={handlePrimaryInput}
@@ -288,7 +288,7 @@ const StaticTextUpdate = () => {
 
                 <CCol md={6} className="mb-3">
                   <CFormLabel htmlFor="key">
-                    Key - slug
+                    Key (formatted)
                     {/* <span className='inputRequired' title='Required'>*</span> */}
                   </CFormLabel>
                   <CFormInput
