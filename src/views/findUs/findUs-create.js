@@ -275,7 +275,7 @@ const FindUsCreate = () => {
 
                 <CCol md={12} className='mb-3'>
                   <span> Translations: </span>
-                  <CTabs activeItemKey="en">
+                  <CTabs activeItemKey="en" className='mt-2'>
                     <CTabList variant="tabs">
                       {
                         langs?.length &&

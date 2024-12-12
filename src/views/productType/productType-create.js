@@ -32,12 +32,12 @@ import slugify from 'slugify';
 //    V A L I D A T I O N
 
 const validationSchema = Yup.object({
-  key: Yup.string().max(255, 'key must be at most 255 characters').required('key is required'),
+  slug: Yup.string().max(255, 'Slug must be at most 255 characters').required('key is required'),
   translation: Yup.array()
     .of(
       Yup.object().shape({
-        langCode: Yup.string().max(10, 'langCode must be at most 10 characters').required('LangCode is required'),
-        value: Yup.string().max(255, 'value must be at most 255 characters')
+        langCode: Yup.string().max(10, 'LangCode must be at most 10 characters').required('LangCode is required'),
+        title: Yup.string().max(255, 'Title must be at most 255 characters')
       })
     )
     .min(1, 'At least one translation object is required') // Arrayda minimum 1 obyekt
@@ -58,9 +58,9 @@ const validateForm = async (formData) => {
 };
 
 
-//    staticText    Component
+//    productType    Component
 
-const StaticTextCreate = () => {  
+const ProductTypeCreate = () => {  
   const apiURL = useSelector((state) => state.apiURL);  
   const langs = useSelector((state) => state.langs);  
   const nav = useNavigate();
@@ -68,10 +68,10 @@ const StaticTextCreate = () => {
   const [loading, setLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState();
   const [data, setData] = useState({  
-    key: "",
+    slug: "",
     translation: []
   });
-  const [primaryInput, setPrimaryInput] = useState("")
+//   const [primaryInput, setPrimaryInput] = useState("")
 
   function showNotf(ok, message) {
     dispatch({type: "set", toast: (Toast(ok, message))()})
@@ -84,7 +84,7 @@ const StaticTextCreate = () => {
         translation : 
           langs.map(lang => ({
             langCode: lang,
-            value: ""
+            title: ""
           }))
       }))
     }
@@ -107,6 +107,13 @@ const StaticTextCreate = () => {
           }
         ]
       }))
+
+      if (lang == "en" && field == "title") {   
+        setData(prew => ({
+          ...prew,
+          slug: slugify(value, { lower: true, strict: true })
+        }))
+      }
       
     } else {
       setData(prew => {
@@ -119,14 +126,14 @@ const StaticTextCreate = () => {
   }
   
 
-  function handlePrimaryInput(e) {
-    const text = e.target.value;
-    setPrimaryInput(text);
-    setData(prew => ({
-      ...prew,
-      key: slugify(text, { lower: true, strict: true })
-    }))
-  }  
+//   function handlePrimaryInput(e) {
+//     const text = e.target.value;
+//     setPrimaryInput(text);
+//     setData(prew => ({
+//       ...prew,
+//       key: slugify(text, { lower: true, strict: true })
+//     }))
+//   }  
   
 
   async function handleSubmit(e) {
@@ -154,18 +161,18 @@ const StaticTextCreate = () => {
 
     } else {
       data.translation.forEach(item => {
-        if (!item.value) {
-          item.value = data.key;
+        if (!item.title) {
+          item.title = data.slug;
         }
       })
       
       setValidationErrors(undefined);
 
       const formData = new FormData();
-      formData.append('key', data.key);
+      formData.append('slug', data.slug);
       formData.append('translation', JSON.stringify(data.translation));
 
-      fetch(`${apiURL}/api/staticText`, {
+      fetch(`${apiURL}/api/productType`, {
         method: "POST",
         body: formData,
       })
@@ -181,7 +188,7 @@ const StaticTextCreate = () => {
         })
         .then((data) => {          
           // console.log('Success:', data);
-          nav(`/staticText/${data.data.id}`)
+          nav(`/productType/${data.data.id}`)
           showNotf(true, data.message);
         })
         .catch((error) => {
@@ -199,7 +206,7 @@ const StaticTextCreate = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader className='card__header'>
-            <h3> StaticText Create </h3>
+            <h3> Product Type Create </h3>
             <div className='card__header--btns'>
                 <CButton
                     color="primary"
@@ -215,7 +222,7 @@ const StaticTextCreate = () => {
                     color="secondary"
                     className='flexButton'
                     // onClick={() => null}
-                    href='#/staticText'
+                    href='#/productType'
                     disabled={loading}
                 >
                   <CIcon icon={cilXCircle}/>
@@ -225,7 +232,7 @@ const StaticTextCreate = () => {
           </CCardHeader>
           <CCardBody>
             <p className="text-body-secondary small">
-              You can create <i>Static Text</i>
+              You can create <i>Product Type</i>
             </p>
 
             <CForm
@@ -235,7 +242,7 @@ const StaticTextCreate = () => {
               onSubmit={handleSubmit}
             >
                 
-                <CCol md={6} className="mb-3">
+                {/* <CCol md={6} className="mb-3">
                   <CFormLabel htmlFor="keyInput">
                     Key
                     <span className='inputRequired' title='Required'>*</span>
@@ -251,18 +258,18 @@ const StaticTextCreate = () => {
                     feedbackInvalid={validationErrors?.key}
                     invalid={!!validationErrors?.key}
                   />
-                </CCol>
+                </CCol> */}
 
                 <CCol md={6} className="mb-3">
-                  <CFormLabel htmlFor="key">
-                    Key (formatted)
+                  <CFormLabel htmlFor="slug">
+                    Slug (formatted)
                   </CFormLabel>
                   <CFormInput
                     type="text"
-                    id="key"
-                    name="key"
+                    id="slug"
+                    name="slug"
                     placeholder="Will create automatically"
-                    value={data?.key}
+                    value={data?.slug}
                     // onChange={handleData}
                     disabled
                   />
@@ -278,10 +285,12 @@ const StaticTextCreate = () => {
                           <CTab
                             itemKey={lang} 
                             key={lang}
+                            disabled={
+                                !data?.slug && lang != "en"
+                              }
                             className={
                               validationErrors && Object.keys(validationErrors)?.some(i => i?.split("-")[1] == lang) ?
-                              "translationError" :
-                              ""
+                              "translationError" : ""
                             }
                           >
                             {lang.toUpperCase()}
@@ -296,18 +305,26 @@ const StaticTextCreate = () => {
                           <CTabPanel className="p-3" itemKey={data.langCode} key={data.langCode}>
                             
                             <CCol md={12} className="mb-3">
-                              <CFormLabel htmlFor={`value-${data.langCode}`}>
-                                Value ({data.langCode}) 
+                              <CFormLabel htmlFor={`title-${data.langCode}`}>
+                                Title ({data.langCode}) 
+                                {
+                                    data.langCode == "en" && 
+                                    <span className='inputRequired' title='Required'>*</span>
+                                }
                               </CFormLabel>
                               <CFormInput
                                 type="text"
-                                id={`value-${data.langCode}`}
-                                name={`value-${data.langCode}`}
-                                placeholder={`Value-${data.langCode} (default same as key)`}
-                                value={data?.value}
+                                id={`title-${data.langCode}`}
+                                name={`title-${data.langCode}`}
+                                placeholder={
+                                    data.langCode == "en" ?
+                                    `Title-${data.langCode} (Required for Slug)` :
+                                    `Title-${data.langCode} (default same as slug)`
+                                  }
+                                value={data?.title}
                                 onChange={(e) => handleData(e, data.langCode)}
-                                feedbackInvalid={validationErrors && validationErrors[`value-${data.langCode}`]} 
-                                invalid={!!validationErrors && !!validationErrors[`value-${data.langCode}`]}
+                                feedbackInvalid={validationErrors && validationErrors[`title-${data.langCode}`]} 
+                                invalid={!!validationErrors && !!validationErrors[`title-${data.langCode}`]}
                               />
                             </CCol>
 
@@ -334,7 +351,7 @@ const StaticTextCreate = () => {
                   <CButton
                     color="secondary"
                     className='flexButton'
-                    href='#/staticText'
+                    href='#/productType'
                   >
                     <CIcon icon={cilXCircle}/>
                     Cancel
@@ -354,4 +371,4 @@ const StaticTextCreate = () => {
   )
 }
 
-export default StaticTextCreate
+export default ProductTypeCreate

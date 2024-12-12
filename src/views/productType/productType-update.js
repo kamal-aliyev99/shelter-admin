@@ -48,9 +48,9 @@ const validateForm = async (formData) => {
 };
 
 
-//    Static Text    Component
+//    productType    Component
 
-const StaticTextUpdate = () => {
+const ProductTypeUpdate = () => {
   const apiURL = useSelector((state) => state.apiURL);  
   const lang = useSelector((state) => state.lang);  
   const dispatch = useDispatch();
@@ -353,4 +353,4 @@ const StaticTextUpdate = () => {
   )
 }
 
-export default StaticTextUpdate
+export default ProductTypeUpdate

@@ -32,7 +32,9 @@ const FindUs = React.lazy(() => import('./views/findUs/findUs'))
 const FindUsCreate = React.lazy(() => import('./views/findUs/findUs-create'))
 const FindUsUpdate = React.lazy(() => import('./views/findUs/findUs-update'))
 
-
+const ProductType = React.lazy(() => import('./views/productType/productType'))
+const ProductTypeCreate = React.lazy(() => import('./views/productType/productType-create'))
+const ProductTypeUpdate = React.lazy(() => import('./views/productType/productType-update'))
 
 
 
@@ -119,6 +121,13 @@ const routes = [
   { path: '/findUs', name: 'OurValue', element: FindUs, exact: true},  
   { path: '/findUs/add', name: 'OurValue', element: FindUsCreate},   // must be before update
   { path: '/findUs/:id', name: 'OurValue', element: FindUsUpdate},
+
+  { path: '/productType', name: 'OurValue', element: ProductType, exact: true},  
+  { path: '/productType/add', name: 'OurValue', element: ProductTypeCreate},   // must be before update
+  { path: '/productType/:id', name: 'OurValue', element: ProductTypeUpdate},
+
+
+
 
 
 
