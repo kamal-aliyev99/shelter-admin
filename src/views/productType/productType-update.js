@@ -28,8 +28,8 @@ import slugify from 'slugify';
 
 const validationSchema = Yup.object({
   id: Yup.number().positive("ID cannot be less than 0"),
-  key: Yup.string().max(255, 'Key must be at most 255 characters').required('key is required'),
-  value: Yup.string().max(255, 'Value must be at most 255 characters').required("Value is required"),
+  slug: Yup.string().max(255, 'Key must be at most 255 characters').required('key is required'),
+  title: Yup.string().max(255, 'Value must be at most 255 characters').required("Value is required"),
   translationID : Yup.number().positive().nullable(), // hemin dilde tercume yoxdusa null,, request'de gonderilmeyecek!
   langCode: Yup.string().max(10, "LangCode must be at most 10 characters!")
 });
@@ -61,37 +61,35 @@ const ProductTypeUpdate = () => {
   const [validationErrors, setValidationErrors] = useState();
   const [data, setData] = useState({  
     id: 0,
-    key: "",
-    value: "",
+    slug: "",
+    title: "",
     translationID : null,
     langCode: lang
   });
-  const [primaryInput, setPrimaryInput] = useState("")
 
   function showNotf(ok, message) {
     dispatch({type: "set", toast: (Toast(ok, message))()})
   }
 
   function handleData(e) {
+    const name = e.target.name;
+    const value = e.target.value;
     setData(prew => {
       return {
         ...prew,
-        [e.target.name]: e.target.value 
+        [name]: value 
       }
     })
-  }
-
-  function handlePrimaryInput(e) {
-    const text = e.target.value;
-    setPrimaryInput(text);
-    setData(prew => ({
-      ...prew,
-      key: slugify(text, { lower: true, strict: true })
-    }))
+    if (name == "title" && lang == "en") {
+      setData(prew => ({
+        ...prew,
+        slug: slugify(value, { lower: true, strict: true })
+      }))
+    }
   }
 
   function getData(id) {
-    fetch(`${apiURL}/api/staticText/${id}?lang=${lang}`)
+    fetch(`${apiURL}/api/productType/${id}?lang=${lang}`)
       .then(res => {
         if (res.ok) {
           return res.json();
@@ -109,11 +107,9 @@ const ProductTypeUpdate = () => {
           setData({
             ...data,
             langCode: lang,
-            value: ""
+            title: ""
           })
-        }
-        
-        setPrimaryInput(data.key)
+        }        
       })
       .catch(err => {        
         setNotFound(true);
@@ -143,12 +139,12 @@ const ProductTypeUpdate = () => {
 
       const formData = new FormData();
       formData.append('id', id);
-      formData.append('key', data.key);
-      formData.append('value', data.value);
+      formData.append('slug', data.slug);
+      formData.append('title', data.title);
       data.translationID && formData.append("translationID", data.translationID); 
       formData.append("langCode", data.langCode);
 
-      fetch(`${apiURL}/api/staticText/${id}`, {
+      fetch(`${apiURL}/api/productType/${id}`, {
         method: "PATCH",
         body: formData,
       })
@@ -190,7 +186,7 @@ const ProductTypeUpdate = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader className='card__header'>
-            <h3> Static Text Update </h3>
+            <h3> Product Type Update </h3>
             <div className='card__header--btns'>
                 <CButton
                   color="primary"
@@ -206,7 +202,7 @@ const ProductTypeUpdate = () => {
                   color="secondary"
                   className='flexButton'
                   // onClick={() => null}
-                  href='#/staticText'
+                  href='#/productType'
                   disabled={loading}
                 >
                   <CIcon icon={cilXCircle}/>
@@ -216,7 +212,7 @@ const ProductTypeUpdate = () => {
           </CCardHeader>
           <CCardBody>
             <p className="text-body-secondary small">
-              You can update <i>Static Text</i>
+              You can update <i>Product Type</i>
             </p>
 
             <CForm
@@ -267,55 +263,36 @@ const ProductTypeUpdate = () => {
                     value={data?.langCode || ""}
                   />
                 </CCol>
-                
-                <CCol md={6} className="mb-3">
-                  <CFormLabel htmlFor="keyInput">
-                    Key
-                    <span className='inputRequired' title='Required'>*</span>
-                  </CFormLabel>
-                  <CFormInput
-                    type="text"
-                    id="keyInput"
-                    name="keyInput"
-                    placeholder="Key"
-                    value={primaryInput}
-                    onChange={handlePrimaryInput}
-                    required
-                    feedbackInvalid={validationErrors?.key}
-                    invalid={!!validationErrors?.key}
-                  />
-                </CCol>
 
                 <CCol md={6} className="mb-3">
-                  <CFormLabel htmlFor="key">
-                    Key (formatted)
+                  <CFormLabel htmlFor="slug">
+                    Slug (formatted)
                     {/* <span className='inputRequired' title='Required'>*</span> */}
                   </CFormLabel>
                   <CFormInput
                     type="text"
-                    id="key"
-                    name="key"
+                    id="slug"
+                    name="slug"
                     placeholder="Will create automatically"
-                    value={data?.key}
-                    // onChange={handleData}
+                    value={data?.slug}
                     disabled
                   />
                 </CCol>
 
                 <CCol md={12} className="mb-3">
-                  <CFormLabel htmlFor="value">
-                    Value ({lang})
+                  <CFormLabel htmlFor="title">
+                    Title ({lang})
                     <span className='inputRequired' title='Required'>*</span>
                   </CFormLabel>
                   <CFormInput
                     type="text"
-                    id="value"
-                    name='value'
-                    placeholder={data?.translationID ? "Value" : "No Content this language"}
-                    value={data?.value || ""}
+                    id="title"
+                    name='title'
+                    placeholder={data?.translationID ? "Title" : "No Content this language"}
+                    value={data?.title || ""}
                     onChange={handleData}
-                    feedbackInvalid={validationErrors?.value}
-                    invalid={!!validationErrors?.value}
+                    feedbackInvalid={validationErrors?.title}
+                    invalid={!!validationErrors?.title}
                   />
                 </CCol>
 
@@ -333,7 +310,7 @@ const ProductTypeUpdate = () => {
                   <CButton
                     color="secondary"
                     className='flexButton'
-                    href='#/staticText'
+                    href='#/productType'
                   >
                     <CIcon icon={cilXCircle}/>
                     Cancel

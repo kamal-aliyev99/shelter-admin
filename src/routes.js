@@ -118,13 +118,13 @@ const routes = [
   { path: '/ourValues/add', name: 'OurValue', element: OurValueCreate},   // must be before update
   { path: '/ourValues/:id', name: 'OurValue', element: OurValueUpdate},
 
-  { path: '/findUs', name: 'OurValue', element: FindUs, exact: true},  
-  { path: '/findUs/add', name: 'OurValue', element: FindUsCreate},   // must be before update
-  { path: '/findUs/:id', name: 'OurValue', element: FindUsUpdate},
+  { path: '/findUs', name: 'FindUs', element: FindUs, exact: true},  
+  { path: '/findUs/add', name: 'FindUs', element: FindUsCreate},   // must be before update
+  { path: '/findUs/:id', name: 'FindUS', element: FindUsUpdate},
 
-  { path: '/productType', name: 'OurValue', element: ProductType, exact: true},  
-  { path: '/productType/add', name: 'OurValue', element: ProductTypeCreate},   // must be before update
-  { path: '/productType/:id', name: 'OurValue', element: ProductTypeUpdate},
+  { path: '/productType', name: 'ProductType', element: ProductType, exact: true},  
+  { path: '/productType/add', name: 'ProductType', element: ProductTypeCreate},   // must be before update
+  { path: '/productType/:id', name: 'ProductType', element: ProductTypeUpdate},
 
 
 

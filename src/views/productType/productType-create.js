@@ -71,7 +71,6 @@ const ProductTypeCreate = () => {
     slug: "",
     translation: []
   });
-//   const [primaryInput, setPrimaryInput] = useState("")
 
   function showNotf(ok, message) {
     dispatch({type: "set", toast: (Toast(ok, message))()})
@@ -124,16 +123,6 @@ const ProductTypeCreate = () => {
       })
     }
   }
-  
-
-//   function handlePrimaryInput(e) {
-//     const text = e.target.value;
-//     setPrimaryInput(text);
-//     setData(prew => ({
-//       ...prew,
-//       key: slugify(text, { lower: true, strict: true })
-//     }))
-//   }  
   
 
   async function handleSubmit(e) {
@@ -237,126 +226,104 @@ const ProductTypeCreate = () => {
 
             <CForm
               className="row g-3 needs-validation mt-2"
-              // noValidate
-              // validated={validated}
               onSubmit={handleSubmit}
             >
-                
-                {/* <CCol md={6} className="mb-3">
-                  <CFormLabel htmlFor="keyInput">
-                    Key
-                    <span className='inputRequired' title='Required'>*</span>
-                  </CFormLabel>
-                  <CFormInput
-                    type="text"
-                    id="keyInput"
-                    name="keyInput"
-                    placeholder="Key"
-                    value={primaryInput}
-                    onChange={handlePrimaryInput}
-                    required
-                    feedbackInvalid={validationErrors?.key}
-                    invalid={!!validationErrors?.key}
-                  />
-                </CCol> */}
+              <CCol md={6} className="mb-3">
+                <CFormLabel htmlFor="slug">
+                  Slug (formatted)
+                </CFormLabel>
+                <CFormInput
+                  type="text"
+                  id="slug"
+                  name="slug"
+                  placeholder="Will create automatically"
+                  value={data?.slug}
+                  disabled
+                />
+              </CCol>
 
-                <CCol md={6} className="mb-3">
-                  <CFormLabel htmlFor="slug">
-                    Slug (formatted)
-                  </CFormLabel>
-                  <CFormInput
-                    type="text"
-                    id="slug"
-                    name="slug"
-                    placeholder="Will create automatically"
-                    value={data?.slug}
-                    // onChange={handleData}
-                    disabled
-                  />
-                </CCol>
-
-                <CCol md={12} className='mb-3'>
-                  <span> Translations: </span>
-                  <CTabs activeItemKey="en" className='mt-2'>
-                    <CTabList variant="tabs">
-                      {
-                        langs?.length &&
-                        langs.map(lang => (
-                          <CTab
-                            itemKey={lang} 
-                            key={lang}
-                            disabled={
-                                !data?.slug && lang != "en"
-                              }
-                            className={
-                              validationErrors && Object.keys(validationErrors)?.some(i => i?.split("-")[1] == lang) ?
-                              "translationError" : ""
+              <CCol md={12} className='mb-3'>
+                <span> Translations: </span>
+                <CTabs activeItemKey="en" className='mt-2'>
+                  <CTabList variant="tabs">
+                    {
+                      langs?.length &&
+                      langs.map(lang => (
+                        <CTab
+                          itemKey={lang} 
+                          key={lang}
+                          disabled={
+                              !data?.slug && lang != "en"
                             }
-                          >
-                            {lang.toUpperCase()}
-                          </CTab>
-                        ))
-                      }
-                    </CTabList>
-                    <CTabContent>
-                      {
-                        data?.translation?.length &&
-                        data?.translation?.map((data, index) => (
-                          <CTabPanel className="p-3" itemKey={data.langCode} key={data.langCode}>
-                            
-                            <CCol md={12} className="mb-3">
-                              <CFormLabel htmlFor={`title-${data.langCode}`}>
-                                Title ({data.langCode}) 
-                                {
-                                    data.langCode == "en" && 
-                                    <span className='inputRequired' title='Required'>*</span>
+                          className={
+                            validationErrors && Object.keys(validationErrors)?.some(i => i?.split("-")[1] == lang) ?
+                            "translationError" : ""
+                          }
+                        >
+                          {lang.toUpperCase()}
+                        </CTab>
+                      ))
+                    }
+                  </CTabList>
+                  <CTabContent>
+                    {
+                      data?.translation?.length &&
+                      data?.translation?.map((data, index) => (
+                        <CTabPanel className="p-3" itemKey={data.langCode} key={data.langCode}>
+                          
+                          <CCol md={12} className="mb-3">
+                            <CFormLabel htmlFor={`title-${data.langCode}`}>
+                              Title ({data.langCode}) 
+                              {
+                                  data.langCode == "en" && 
+                                  <span className='inputRequired' title='Required'>*</span>
+                              }
+                            </CFormLabel>
+                            <CFormInput
+                              type="text"
+                              id={`title-${data.langCode}`}
+                              name={`title-${data.langCode}`}
+                              placeholder={
+                                  data.langCode == "en" ?
+                                  `Title-${data.langCode} (Required for Slug)` :
+                                  `Title-${data.langCode} (default same as slug)`
                                 }
-                              </CFormLabel>
-                              <CFormInput
-                                type="text"
-                                id={`title-${data.langCode}`}
-                                name={`title-${data.langCode}`}
-                                placeholder={
-                                    data.langCode == "en" ?
-                                    `Title-${data.langCode} (Required for Slug)` :
-                                    `Title-${data.langCode} (default same as slug)`
-                                  }
-                                value={data?.title}
-                                onChange={(e) => handleData(e, data.langCode)}
-                                feedbackInvalid={validationErrors && validationErrors[`title-${data.langCode}`]} 
-                                invalid={!!validationErrors && !!validationErrors[`title-${data.langCode}`]}
-                              />
-                            </CCol>
+                              value={data?.title}
+                              onChange={(e) => handleData(e, data.langCode)}
+                              feedbackInvalid={validationErrors && validationErrors[`title-${data.langCode}`]} 
+                              invalid={!!validationErrors && !!validationErrors[`title-${data.langCode}`]}
+                            />
+                          </CCol>
 
-                          </CTabPanel>
-                        ))
-                      }
-                    </CTabContent>
-                  </CTabs>
-                </CCol>
+                        </CTabPanel>
+                      ))
+                    }
+                  </CTabContent>
+                </CTabs>
+              </CCol>
 
-                
+              
 
-                <div className='card__header--btns'>
-                  <CButton
-                    // type='submit'
-                    color="primary"
-                    className='flexButton'
-                    onClick={handleSubmit}
-                  >
-                    <CIcon icon={cilSave}/>
-                    Save
-                  </CButton>
+              <div className='card__header--btns'>
+                <CButton
+                  // type='submit'
+                  color="primary"
+                  className='flexButton'
+                  onClick={handleSubmit}
+                >
+                  <CIcon icon={cilSave}/>
+                  Save
+                </CButton>
 
-                  <CButton
-                    color="secondary"
-                    className='flexButton'
-                    href='#/productType'
-                  >
-                    <CIcon icon={cilXCircle}/>
-                    Cancel
-                  </CButton>
-                </div>
+                <CButton
+                  color="secondary"
+                  className='flexButton'
+                  href='#/productType'
+                >
+                  <CIcon icon={cilXCircle}/>
+                  Cancel
+                </CButton>
+              </div>
             </CForm>
             {
               loading &&
