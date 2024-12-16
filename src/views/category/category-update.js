@@ -9,6 +9,7 @@ import {
   CFormCheck,
   CFormInput,
   CFormLabel,
+  CFormSelect,
   CFormTextarea,
   CRow,
   CSpinner
@@ -32,9 +33,9 @@ import slugify from 'slugify';
 
 const validationSchema = Yup.object({
   id: Yup.number().positive("ID cannot be less than 0").required('id is required'),
+  productType_id: Yup.number().positive("ID cannot be less than 0").required('productType_id is required'),
   slug: Yup.string().max(255, 'slug must be at most 255 characters').required('Slug is required'),
   title: Yup.string().max(255, 'slug must be at most 255 characters').required("Title is required"),
-  desc: Yup.string().max(255, 'slug must be at most 255 characters').nullable(),
   translationID : Yup.number().positive().nullable(), // hemin dilde tercume yoxdusa null,, request'de gonderilmeyecek!
   langCode: Yup.string().max(10, "LangCode must be at most 10 characters!")
 });
@@ -69,9 +70,9 @@ const validateImage = async (file) => {
 };
 
 
-//    OurValuesUpdate    Component
+//    CategoryUpdate    Component
 
-const OurValuesUpdate = () => {
+const CategoryUpdate = () => {
   const apiURL = useSelector((state) => state.apiURL);  
   const lang = useSelector((state) => state.lang);  
   const dispatch = useDispatch();
@@ -83,15 +84,16 @@ const OurValuesUpdate = () => {
   const [data, setData] = useState({  
     id: id,
     image: undefined,
+    productType_id: 0,
     slug: "",
     title: "",
-    desc: "",
     translationID : null,
     langCode: lang
   });
   const [deleteImage, setDeleteImage] = useState(false);
   const [file, setFile] = useState(null);
   const [previewImage, setPreviewImage] = useState();
+  const [options, setOptions] = useState([])
 
   function showNotf(ok, message) {
     dispatch({type: "set", toast: (Toast(ok, message))()})
@@ -134,7 +136,7 @@ const OurValuesUpdate = () => {
 
 
   function getData(id) {
-    fetch(`${apiURL}/api/ourValues/${id}?lang=${lang}`)
+    fetch(`${apiURL}/api/category/${id}?lang=${lang}`)
       .then(res => {
         if (res.ok) {
           return res.json();
@@ -152,8 +154,7 @@ const OurValuesUpdate = () => {
           setData({
             ...data,
             langCode: lang,
-            title: "",
-            desc: ""
+            title: ""
           })
         }        
       })
@@ -163,8 +164,29 @@ const OurValuesUpdate = () => {
       })
   }
 
+  function getOptionDatas() {
+    fetch(`${apiURL}/api/productType?lang=${lang}`)
+    .then(res => {
+        if (res.ok) {
+        return res.json();
+        } else {
+        return res.json().then(err =>{
+            throw new Error(`${res.status}: ${err.message}`)
+        })
+        }
+    })
+    .then(datas => {
+        const sortedData = datas.sort((a,b) => a.id - b.id);
+        setOptions(sortedData)
+    })
+    .catch(err => {
+        console.error(err);
+    })
+  }
+
   useEffect(() => {
-    getData(id)    
+    getData(id);
+    getOptionDatas();
   }, [apiURL, id, lang])
 
   async function handleSubmit(e) {
@@ -186,9 +208,9 @@ const OurValuesUpdate = () => {
 
       const formData = new FormData();
       formData.append('id', id);
+      formData.append('productType_id', data.productType_id);
       formData.append('slug', data.slug);
       formData.append('title', data.title);
-      formData.append('desc', data.desc);
       data.translationID && formData.append("translationID", data.translationID); 
       formData.append("langCode", data.langCode);
 
@@ -202,7 +224,7 @@ const OurValuesUpdate = () => {
       //   console.log(element);
       // }
 
-      fetch(`${apiURL}/api/ourValues/${id}`, {
+      fetch(`${apiURL}/api/category/${id}`, {
         method: "PATCH",
         body: formData,
       })
@@ -246,7 +268,7 @@ const OurValuesUpdate = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader className='card__header'>
-            <h3> Our Value Update </h3>
+            <h3> Category Update </h3>
             <div className='card__header--btns'>
                 <CButton
                   color="primary"
@@ -262,7 +284,7 @@ const OurValuesUpdate = () => {
                   color="secondary"
                   className='flexButton'
                   // onClick={() => null}
-                  href='#/ourValues'
+                  href='#/category'
                   disabled={loading}
                 >
                   <CIcon icon={cilXCircle}/>
@@ -272,7 +294,7 @@ const OurValuesUpdate = () => {
           </CCardHeader>
           <CCardBody>
             <p className="text-body-secondary small">
-              You can update <i>Our Value</i>
+              You can update <i>Category</i>
             </p>
 
             <CForm
@@ -342,7 +364,7 @@ const OurValuesUpdate = () => {
                   }
                 </CCol>
             
-              <CCol md={4} className="mb-3">
+              <CCol md={6} className="mb-3">
                 <CFormLabel htmlFor="id">
                   ID 
                 </CFormLabel>
@@ -356,7 +378,7 @@ const OurValuesUpdate = () => {
                 />
               </CCol>
 
-              <CCol md={4} className="mb-3">
+              <CCol md={6} className="mb-3">
                 <CFormLabel htmlFor="translationID">
                 Translation ID
                 </CFormLabel>
@@ -370,7 +392,30 @@ const OurValuesUpdate = () => {
                 />
               </CCol>
 
-              <CCol md={4} className="mb-3">
+                <CCol md={6} className="mb-3">
+                    <CFormLabel htmlFor="productType">
+                    ProductType
+                    <span className='inputRequired' title='Required'>*</span>
+                    </CFormLabel>
+                    <CFormSelect
+                        aria-label="Product-Type"
+                        id='productType'
+                        name='productType_id'
+                        options={[
+                            {label: "Select Product-Type", value: 0, disabled: true},
+                            ...options.map(item => ({
+                            label: item.title,
+                            value: item.id
+                            }))
+                        ]}
+                        onChange={handleData}
+                        value={data.productType_id}
+                        feedbackInvalid={validationErrors?.productType_id}
+                        invalid={!!validationErrors?.productType_id}
+                    />
+                </CCol>
+
+              <CCol md={6} className="mb-3">
                 <CFormLabel htmlFor="langCode">
                   Lang Code
                 </CFormLabel>
@@ -416,23 +461,6 @@ const OurValuesUpdate = () => {
                 />
               </CCol>
 
-              <CCol md={12} className="mb-3">
-                <CFormLabel htmlFor="desc">
-                  Description ({data?.langCode})
-                </CFormLabel>
-
-                <CFormTextarea
-                  className='form__textarea'
-                  id="desc"
-                  name="desc"
-                  placeholder="description"
-                  value={data?.desc}
-                  onChange={handleData}
-                  feedbackInvalid={validationErrors && validationErrors?.desc} 
-                  invalid={!!validationErrors && !!validationErrors?.desc}
-                />
-              </CCol>
-
               <div className='card__header--btns'>
                 <CButton
                   // type='submit'
@@ -447,7 +475,7 @@ const OurValuesUpdate = () => {
                 <CButton
                   color="secondary"
                   className='flexButton'
-                  href='#/ourValues'
+                  href='#/category'
                 >
                   <CIcon icon={cilXCircle}/>
                   Cancel
@@ -467,4 +495,4 @@ const OurValuesUpdate = () => {
   )
 }
 
-export default OurValuesUpdate
+export default CategoryUpdate

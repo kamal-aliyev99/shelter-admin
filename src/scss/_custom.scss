@@ -55,6 +55,8 @@ input:disabled{
 }
 
 
+
+
 //      C A R D    
 
 .card__header{
@@ -75,6 +77,10 @@ input:disabled{
     .card__header .card__header--btns{
         display: none;
     }
+}
+
+.section__header--flex{
+    gap: 12px;
 }
 
 .card-body{

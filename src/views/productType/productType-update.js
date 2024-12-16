@@ -27,7 +27,7 @@ import slugify from 'slugify';
 //    V A L I D A T I O N
 
 const validationSchema = Yup.object({
-  id: Yup.number().positive("ID cannot be less than 0"),
+  id: Yup.number().positive("ID cannot be less than 0").required('id is required'),
   slug: Yup.string().max(255, 'Key must be at most 255 characters').required('key is required'),
   title: Yup.string().max(255, 'Value must be at most 255 characters').required("Value is required"),
   translationID : Yup.number().positive().nullable(), // hemin dilde tercume yoxdusa null,, request'de gonderilmeyecek!

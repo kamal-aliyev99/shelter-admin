@@ -49,22 +49,22 @@ const HeaderLang = () => {
 
     return(
         <>
-        <CFormSelect 
-            className="headerLang"
-            aria-label="Langs"
-            options={langs}
-            onChange={handleChange}
-            value={currentLang}
-        />
-        {/* <CFormSelect 
-            aria-label="Langs"
-            options={[
-                'Open this select menu',
-                { label: 'One', value: '1' },
-                { label: 'Two', value: '2' },
-                { label: 'Three', value: '3', disabled: true }
-            ]}
-        /> */}
+          <CFormSelect 
+              className="headerLang"
+              aria-label="Langs"
+              options={langs}
+              onChange={handleChange}
+              value={currentLang}
+          />
+          {/* <CFormSelect 
+              aria-label="Langs"
+              options={[
+                  'Open this select menu',
+                  { label: 'One', value: '1' },
+                  { label: 'Two', value: '2' },
+                  { label: 'Three', value: '3', disabled: true }
+              ]}
+          /> */}
         </>
     )
 }

@@ -36,6 +36,10 @@ const ProductType = React.lazy(() => import('./views/productType/productType'))
 const ProductTypeCreate = React.lazy(() => import('./views/productType/productType-create'))
 const ProductTypeUpdate = React.lazy(() => import('./views/productType/productType-update'))
 
+const Category = React.lazy(() => import('./views/category/category'))
+const CategoryCreate = React.lazy(() => import('./views/category/category-create'))
+const CategoryUpdate = React.lazy(() => import('./views/category/category-update'))
+
 
 
 
@@ -111,20 +115,25 @@ const routes = [
   { path: '/setting/:id', name: 'Setting', element: SettingInner},
   
   { path: '/staticText', name: 'StaticTexts', element: StaticText, exact: true},  
-  { path: '/staticText/add', name: 'staticText', element: StaticTextCreate},   // must be before update
+  { path: '/staticText/add', name: 'staticText create', element: StaticTextCreate},   // must be before update
   { path: '/staticText/:id', name: 'staticText', element: StaticTextUpdate},
 
-  { path: '/ourValues', name: 'OurValue', element: OurValue, exact: true},  
-  { path: '/ourValues/add', name: 'OurValue', element: OurValueCreate},   // must be before update
-  { path: '/ourValues/:id', name: 'OurValue', element: OurValueUpdate},
+  { path: '/ourValues', name: 'OurValues', element: OurValue, exact: true},  
+  { path: '/ourValues/add', name: 'OurValue create', element: OurValueCreate},   // must be before update
+  { path: '/ourValues/:id', name: 'OurValues', element: OurValueUpdate},
 
   { path: '/findUs', name: 'FindUs', element: FindUs, exact: true},  
-  { path: '/findUs/add', name: 'FindUs', element: FindUsCreate},   // must be before update
+  { path: '/findUs/add', name: 'FindUs create', element: FindUsCreate},   // must be before update
   { path: '/findUs/:id', name: 'FindUS', element: FindUsUpdate},
 
-  { path: '/productType', name: 'ProductType', element: ProductType, exact: true},  
-  { path: '/productType/add', name: 'ProductType', element: ProductTypeCreate},   // must be before update
-  { path: '/productType/:id', name: 'ProductType', element: ProductTypeUpdate},
+  { path: '/productType', name: 'ProductTypes', element: ProductType, exact: true},  
+  { path: '/productType/add', name: 'ProductTypes create', element: ProductTypeCreate},   // must be before update
+  { path: '/productType/:id', name: 'ProductTypes', element: ProductTypeUpdate},
+
+  { path: '/category', name: 'Categories', element: Category, exact: true},  
+  { path: '/category/add', name: 'Category create', element: CategoryCreate},   // must be before update
+  { path: '/category/:id', name: 'Categories', element: CategoryUpdate},
+
 
 
 
