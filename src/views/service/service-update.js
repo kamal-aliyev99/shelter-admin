@@ -45,6 +45,9 @@ import slugify from 'slugify';
 const validationSchema = Yup.object({
   id: Yup.number().positive("ID cannot be less than 0").required('id is required'),
   slug: Yup.string().max(255, 'slug must be at most 255 characters').required('Slug is required'),
+  seoTitle: Yup.string().max(255, 'seoTitle must be at most 255 characters').optional(),
+  seoDesc: Yup.string().optional(),
+  seoKeywords: Yup.string().optional(),
   title: Yup.string().max(255, 'slug must be at most 255 characters').required("Title is required"),
   desc: Yup.string().max(255, 'slug must be at most 255 characters').nullable(),
   translationID : Yup.number().positive().nullable(), // hemin dilde tercume yoxdusa null,, request'de gonderilmeyecek!
@@ -108,7 +111,10 @@ const ServiceUpdate = () => {
     langCode: lang,
     specs: [],
     benefits: [],
-    customers: []
+    customers: [],
+    seoTitle: "",
+    seoDesc: "",
+    seoKeywords: ""
   });
   const [ specs, setSpecs ] = useState({});
   const [ benefits, setBenefits ] = useState({});
@@ -447,6 +453,9 @@ const ServiceUpdate = () => {
       const formData = new FormData();
       formData.append('id', id);
       formData.append('slug', data.slug);
+      formData.append('seoTitle', data.seoTitle);
+      formData.append('seoDesc', data.seoDesc);
+      formData.append('seoKeywords', data.seoKeywords);
       formData.append('title', data.title);
       formData.append('subTitle', data.subTitle);
       formData.append('shortDesc', data.shortDesc);
@@ -1269,6 +1278,68 @@ const ServiceUpdate = () => {
                             })
                         }
                     </CFormSelect>
+                </CCol>
+
+
+                <hr/>
+
+
+                <CCol md={12} className='mb-3'>
+                  <div className='sectionHeader mb-4'>
+                    <h5> SEO Datas: </h5>
+                  </div>
+                        
+                  <CCol md={12} className="mb-3">
+                    <CFormLabel htmlFor="seoTitle">
+                      Seo title
+                    </CFormLabel>
+  
+                    <CFormInput
+                      type="text"
+                      id="seoTitle"
+                      name='seoTitle'
+                      placeholder="Seo title"
+                      value={data?.seoTitle || ""}
+                      onChange={handleData}
+                      feedbackInvalid={validationErrors?.seoTitle}
+                      invalid={!!validationErrors?.seoTitle}
+                    />
+                  </CCol>
+  
+                  <CCol md={12} className="mb-3">
+                    <CFormLabel htmlFor="seoDesc">
+                      Seo description 
+                    </CFormLabel>
+    
+                    <CFormTextarea
+                      className='form__textarea'
+                      id="seoDesc"
+                      name="seoDesc"
+                      placeholder="Seo description"
+                      value={data?.seoDesc}
+                      onChange={handleData}
+                      feedbackInvalid={validationErrors && validationErrors?.seoDesc} 
+                      invalid={!!validationErrors && !!validationErrors?.seoDesc}
+                    />
+                  </CCol>
+  
+                  <CCol md={12} className="mb-3">
+                    <CFormLabel htmlFor="seoKeywords">
+                      Seo keywords 
+                    </CFormLabel>
+    
+                    <CFormTextarea
+                      className='form__textarea'
+                      id="seoKeywords"
+                      name="seoKeywords"
+                      placeholder="Seo Keywords"
+                      value={data?.seoKeywords}
+                      onChange={handleData}
+                      feedbackInvalid={validationErrors && validationErrors?.seoKeywords} 
+                      invalid={!!validationErrors && !!validationErrors?.seoKeywords}
+                    />
+                  </CCol>
+  
                 </CCol>
 
 

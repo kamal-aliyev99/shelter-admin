@@ -31,7 +31,7 @@ import {
   cilPlus
 } from '@coreui/icons'
 import { useDispatch, useSelector } from 'react-redux';
-import { json, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import * as Yup from 'yup';
 import Toast from '../../components/Toast';
 import slugify from 'slugify';
@@ -51,7 +51,10 @@ const validationSchema = Yup.object({
         shortDesc: Yup.string().max(255, 'shortDesc must be at most 255 characters').optional(),
         benefitsTitle: Yup.string().max(255, 'benefitsTitle must be at most 255 characters').optional(),
         customersTitle: Yup.string().max(255, 'customersTitle must be at most 255 characters').optional(),
-        desc: Yup.string().optional()
+        desc: Yup.string().optional(),
+        seoTitle: Yup.string().max(255, 'seoTitle must be at most 255 characters').optional(),
+        seoDesc: Yup.string().optional(),
+        seoKeywords: Yup.string().optional()
       })
     )
     .min(1, 'At least one translation object is required') // Arrayda minimum 1 obyekt
@@ -100,6 +103,9 @@ const ServiceCreate = () => {
   const [validationErrors, setValidationErrors] = useState();
   const [data, setData] = useState({  
     slug: "",
+    seoTitle: "",
+    seoDesc: "",
+    seoKeywords: "",
     translation: []
   });
   const [ customers, setCustomers ] = useState([]);
@@ -337,6 +343,9 @@ const ServiceCreate = () => {
 
       const formData = new FormData();
       formData.append('slug', data.slug);
+      formData.append('seoTitle', data.seoTitle);
+      formData.append('seoDesc', data.seoDesc);
+      formData.append('seoKeywords', data.seoKeywords);
       formData.append('translation', JSON.stringify(data.translation));
       formData.append("image", file || null) 
       formData.append("benefitImage", benefitFile || null) 
@@ -515,7 +524,7 @@ const ServiceCreate = () => {
                   name="slug"    
                   placeholder="Will create automatically"
                   value={data?.slug}
-                  onChange={handleData}
+                  // onChange={handleData}
                   disabled
                 />
               </CCol>
@@ -911,6 +920,68 @@ const ServiceCreate = () => {
                 </CCol>
 
               </CCol>
+
+
+              <hr/>
+
+
+              <CCol md={12} className='mb-3'>
+                <div className='sectionHeader mb-4'>
+                  <h5> SEO Datas: </h5>
+                </div>
+                     
+                <CCol md={12} className="mb-3">
+                  <CFormLabel htmlFor="seoTitle">
+                    Seo title
+                  </CFormLabel>
+
+                  <CFormInput
+                    type="text"
+                    id="seoTitle"
+                    name='seoTitle'
+                    placeholder="Seo title"
+                    value={data?.seoTitle || ""}
+                    onChange={handleData}
+                    feedbackInvalid={validationErrors?.seoTitle}
+                    invalid={!!validationErrors?.seoTitle}
+                  />
+                </CCol>
+
+                <CCol md={12} className="mb-3">
+                  <CFormLabel htmlFor="seoDesc">
+                    Seo description 
+                  </CFormLabel>
+  
+                  <CFormTextarea
+                    className='form__textarea'
+                    id="seoDesc"
+                    name="seoDesc"
+                    placeholder="Seo description"
+                    value={data?.seoDesc}
+                    onChange={handleData}
+                    feedbackInvalid={validationErrors && validationErrors?.seoDesc} 
+                    invalid={!!validationErrors && !!validationErrors?.seoDesc}
+                  />
+                </CCol>
+
+                <CCol md={12} className="mb-3">
+                  <CFormLabel htmlFor="seoKeywords">
+                    Seo keywords 
+                  </CFormLabel>
+  
+                  <CFormTextarea
+                    className='form__textarea'
+                    id="seoKeywords"
+                    name="seoKeywords"
+                    placeholder="Seo Keywords"
+                    value={data?.seoKeywords}
+                    onChange={handleData}
+                    feedbackInvalid={validationErrors && validationErrors?.seoKeywords} 
+                    invalid={!!validationErrors && !!validationErrors?.seoKeywords}
+                  />
+                </CCol>
+
+              </CCol> 
 
               <div className='card__header--btns'>
                 <CButton
