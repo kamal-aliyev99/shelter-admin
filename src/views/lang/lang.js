@@ -92,6 +92,7 @@ const Lang = () => {
 
     fetch(`${apiURL}/api/lang/${id}`, {
       method: "DELETE",
+      credentials: "include",
     })
       .then((res) => {        
         if (res.ok) {

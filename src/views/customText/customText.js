@@ -29,13 +29,14 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import Toast from '../../components/Toast';
 
-const Setting = () => {
+const CustomText = () => {
   const dispatch = useDispatch();
   const [datas, setDatas] = useState([]);
   const [selectedData, setSelectedData] = useState();
   const [modalVisible, setModalVisible] = useState(false);
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
   const apiURL = useSelector((state) => state.apiURL);  
+  const lang = useSelector((state) => state.lang);  
   const [loadingIDs, setLoadingIDs] = useState([])
 
   function showNotf(ok, message) {
@@ -63,7 +64,7 @@ const Setting = () => {
   }
 
   function getDatas() {
-    fetch(`${apiURL}/api/setting`)
+    fetch(`${apiURL}/api/customText?lang=${lang}`)
       .then(res => {
         if (res.ok) {
           return res.json();
@@ -84,12 +85,12 @@ const Setting = () => {
 
   useEffect(() => {
     getDatas();
-  }, [apiURL])
+  }, [apiURL, lang])
 
   function deleteData(id) {
     setLoadingIDs(prew => [...prew, id])
 
-    fetch(`${apiURL}/api/setting/${id}`, {
+    fetch(`${apiURL}/api/customText/${id}`, {
       method: "DELETE",
       credentials: "include",
     })
@@ -99,7 +100,7 @@ const Setting = () => {
           getDatas();
           showNotf(true, "Deleted successfully");
         } else {
-          showNotf(false, `${res.status}: An error occurred while deleting setting`);
+          showNotf(false, `${res.status}: An error occurred while deleting Custom Text`);
           return res.json().then(err =>{
             console.error(err);
           })
@@ -117,11 +118,11 @@ const Setting = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader className='card__header'>
-            <h3> Setting </h3>
+            <h3> Custom Text </h3>
             <CButton
               color="primary"
               className='flexButton'
-              href='#/setting/0'
+              href='#/customText/add'
             >
               <CIcon icon={cilPlus}/>
               Create
@@ -129,7 +130,7 @@ const Setting = () => {
           </CCardHeader>
           <CCardBody>
             <p className="text-body-secondary small">
-              You can add, update and delete <i>Setting</i>
+              You can add, update and delete <i>Custom Text</i>
             </p>
             <div className='table-container'>
               <CTable striped hover className='main-table'>
@@ -137,7 +138,7 @@ const Setting = () => {
                   <CTableRow>
                     <CTableHeaderCell scope="col">ID</CTableHeaderCell>
                     <CTableHeaderCell scope="col">Key</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Value</CTableHeaderCell>
+                    <CTableHeaderCell scope="col">Value ({lang})</CTableHeaderCell>
                     <CTableHeaderCell scope="col" className='table__options'>Options</CTableHeaderCell>
                   </CTableRow>
                 </CTableHead>
@@ -167,7 +168,7 @@ const Setting = () => {
                             color="warning"
                             variant="outline"
                             title='Edit'
-                            href={`#/setting/${data.id}`}
+                            href={`#/customText/${data.id}`}
                           >
                             <CIcon icon={cilPencil}/>
                           </CButton>
@@ -198,7 +199,7 @@ const Setting = () => {
 
             <CModal scrollable visible={modalVisible} onClose={() => closeModal()} className='infoModal'>
               <CModalHeader>
-                <CModalTitle>Setting</CModalTitle>
+                <CModalTitle>Custom Text</CModalTitle>
               </CModalHeader>
               <CModalBody>
                 
@@ -217,7 +218,7 @@ const Setting = () => {
                 <hr/>
 
                 <div className='infoModal__item'>
-                  <strong> Value </strong>
+                  <strong> Value ({lang}) </strong>
                   <p> {selectedData?.value} </p>
                 </div>
 
@@ -245,7 +246,7 @@ const Setting = () => {
                 </CModalTitle>
               </CModalHeader>
               <CModalBody>
-                Do you want to delete <strong>{selectedData?.key}</strong> Setting? 
+                Do you want to delete <strong>{selectedData?.key}</strong> Custom Text? 
               </CModalBody>
               <CModalFooter>
                 <CButton color="secondary" onClick={() => closeConfirmModal()}>
@@ -269,4 +270,4 @@ const Setting = () => {
   )
 }
 
-export default Setting
+export default CustomText

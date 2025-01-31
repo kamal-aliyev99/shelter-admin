@@ -1,9 +1,10 @@
 import React, { Suspense, useEffect, useState } from 'react'
-import { BrowserRouter, HashRouter, Route, Router, Routes } from 'react-router-dom'
+import { BrowserRouter, HashRouter, Route, Router, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 
 import { CSpinner, useColorModes } from '@coreui/react'
 import './scss/style.scss'
+import Toast from './components/Toast';
 
 // Containers
 const DefaultLayout = React.lazy(() => import('./layout/DefaultLayout'))
@@ -18,7 +19,66 @@ const App = () => {
   const { isColorModeSet, setColorMode } = useColorModes('coreui-free-react-admin-template-theme')
   const storedTheme = useSelector((state) => state.theme)
 
-  // const dispatch = useDispatch();
+  const dispatch = useDispatch();
+  const nav = useNavigate();
+  const location = useLocation();
+  const userData = useSelector((state) => state.userData)
+  const apiURL = useSelector((state) => state.apiURL);
+
+  function showNotf(ok, message) {
+    dispatch({type: "set", toast: (Toast(ok, message))()})
+  }
+
+  function checkLogin () {
+    fetch(`${apiURL}/api/auth/checkLogin`, {
+      method: "POST",
+      credentials: "include",
+    })
+      .then((res) => {
+        if (res.ok) {
+          return res.json();
+        } else {
+          return res.json().then(err =>{
+            // console.error(err);
+            throw new Error(`${res.status}: ${err.message}`)
+          })
+        }
+      })
+      .then((data) => {          
+        // console.log('Success:', data);
+        // nav(`/dashboard`)
+        dispatch({type: "set", userData: data})
+        // showNotf(true, data.message);
+      })
+      .catch((error) => {
+        nav(`/login`)
+        dispatch({type: "set", userData: null})
+        // showNotf(false, `${error}`)
+      })
+  }
+
+  useEffect(() => {
+    checkLogin()
+  }, [])
+
+  useEffect(() => {
+    if (userData === null) {
+      nav(`/login`)
+    } else if (location.pathname == "/login" && userData) {
+      nav(`/dashboard`)
+    }
+  }, [location.pathname])
+
+  useEffect(() => {
+    if (userData && location.pathname == "/login") {
+      nav(`/dashboard`)
+    } else if (userData === null) {
+      nav(`/login`)
+    }
+  }, [userData])
+
+  
+
   // const storedLang = useSelector((state) => state.lang)
   // const [lang, setLang] = useState(storedLang)
 
@@ -45,7 +105,6 @@ const App = () => {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <HashRouter>
       <Suspense
         fallback={
           <div className="pt-3 text-center">
@@ -61,7 +120,6 @@ const App = () => {
           <Route path="*" name="Home" element={<DefaultLayout />} />
         </Routes>
       </Suspense>
-    </HashRouter>
   )
 }
 

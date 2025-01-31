@@ -203,6 +203,7 @@ const OurValuesCreate = () => {
 
       fetch(`${apiURL}/api/ourValues`, {
         method: "POST",
+        credentials: "include",
         body: formData,
       })
         .then((res) => {

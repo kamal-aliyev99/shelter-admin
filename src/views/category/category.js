@@ -129,6 +129,7 @@ const Category = () => {
 
     fetch(`${apiURL}/api/category/${id}`, {
       method: "DELETE",
+      credentials: "include",
     })
       .then((res) => {        
         if (res.ok) {

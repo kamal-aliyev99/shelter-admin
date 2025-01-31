@@ -8,8 +8,14 @@ import {
   CForm,
   CFormInput,
   CFormLabel,
+  CFormTextarea,
   CRow,
-  CSpinner
+  CSpinner,
+  CTab,
+  CTabContent,
+  CTabList,
+  CTabPanel,
+  CTabs
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react';
 import {
@@ -17,7 +23,7 @@ import {
   cilXCircle,
 } from '@coreui/icons'
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router-dom';
+import { json, useNavigate, useParams } from 'react-router-dom';
 import * as Yup from 'yup';
 import Toast from '../../components/Toast';
 import slugify from 'slugify';
@@ -27,9 +33,16 @@ import slugify from 'slugify';
 //    V A L I D A T I O N
 
 const validationSchema = Yup.object({
-  id: Yup.number().min(0, "ID cannot be less than 0"),
   key: Yup.string().max(255, 'key must be at most 255 characters').required('key is required'),
-  value: Yup.string().nullable(),
+  translation: Yup.array()
+    .of(
+      Yup.object().shape({
+        langCode: Yup.string().max(10, 'langCode must be at most 10 characters').required('LangCode is required'),
+        value: Yup.string()
+      })
+    )
+    .min(1, 'At least one translation object is required') // Arrayda minimum 1 obyekt
+    .required('Translation is required'),
 });
 
 const validateForm = async (formData) => {
@@ -46,21 +59,18 @@ const validateForm = async (formData) => {
 };
 
 
-//    setting    Component
+//    customText    Component
 
-const SettingInner = () => {
+const CustomTextCreate = () => {  
   const apiURL = useSelector((state) => state.apiURL);  
+  const langs = useSelector((state) => state.langs);  
   const nav = useNavigate();
   const dispatch = useDispatch();
-  const {id} = useParams();
-  const [notFound, setNotFound] = useState(false);
-  const [error, setError] = useState();
   const [loading, setLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState();
   const [data, setData] = useState({  
-    id: 0,
     key: "",
-    value: ""
+    translation: []
   });
   const [primaryInput, setPrimaryInput] = useState("")
 
@@ -68,14 +78,47 @@ const SettingInner = () => {
     dispatch({type: "set", toast: (Toast(ok, message))()})
   }
 
-  function handleData(e) {
-    setData(prew => {
-      return {
+  useEffect(() => {
+    if (!data.translation.length) {
+      setData(prew => ({
         ...prew,
-        [e.target.name]: e.target.value 
-      }
-    })
+        translation : 
+          langs.map(lang => ({
+            langCode: lang,
+            value: ""
+          }))
+      }))
+    }
+  }, [langs])  
+
+  function handleData(e, lang) {
+    const name = e.target.name;
+    const value = e.target.value;
+    if (lang) {
+      const currentTranslation = data.translation.find((item) => item.langCode == lang)
+      const field = name.split(`-${lang}`)[0]        
+
+      setData(prew => ({
+        ...prew,
+        translation: [
+          ...[...prew.translation].filter((item) => item.langCode != lang),
+          {
+            ...currentTranslation,
+            [field]: value
+          }
+        ]
+      }))
+      
+    } else {
+      setData(prew => {
+        return {
+          ...prew,
+          [name]: value 
+        }
+      })
+    }
   }
+  
 
   function handlePrimaryInput(e) {
     const text = e.target.value;
@@ -84,35 +127,8 @@ const SettingInner = () => {
       ...prew,
       key: slugify(text, { lower: true, strict: true })
     }))
-  }
-
-  function getData(id) {
-    fetch(`${apiURL}/api/setting/${id}`)
-      .then(res => {
-        if (res.ok) {
-          return res.json();
-        } else {
-          return res.json().then(err =>{
-            // console.error(err);
-            throw new Error(`${res.status}: ${err.message}`)
-          })
-        }
-      })
-      .then(data => {
-        setData(data)        
-        setPrimaryInput(data.key)
-      })
-      .catch(err => {        
-        setNotFound(true);
-        setError(`${err}`)
-      })
-  }
-
-  useEffect(() => {
-    id != 0 &&
-    getData(id)
-    
-  }, [apiURL, id])
+  }  
+  
 
   async function handleSubmit(e) {
     e?.preventDefault();
@@ -121,23 +137,37 @@ const SettingInner = () => {
     const formValidationErrors = await validateForm(data);
     
     if (formValidationErrors) {
-      const err = {...formValidationErrors} 
+
+      let err = {...formValidationErrors} 
+
+      for (const [key, value] of Object.entries(formValidationErrors)) {
+        if (key.includes("translation[")) {
+          const trIndex = key.split("translation[")[1].split("]")[0];
+          const trField = key.split("].")[1];
+          const trErrorLang = data?.translation[trIndex].langCode;
+          err[`${trField}-${trErrorLang}`] = value          
+        }
+      }
 
       showNotf(false, "Please enter correct data")
       setValidationErrors(err); 
       setLoading(false)
 
     } else {
+      data.translation.forEach(item => {
+        if (!item.value) {
+          item.value = data.key;
+        }
+      })
+      
       setValidationErrors(undefined);
 
       const formData = new FormData();
-      id != 0 && formData.append('id', id);
       formData.append('key', data.key);
-      formData.append('value', data.value);
-      
+      formData.append('translation', JSON.stringify(data.translation));
 
-      fetch(`${apiURL}/api/setting/${id != 0 ? id : ""}`, {
-        method: id == 0 ? "POST" : "PATCH",
+      fetch(`${apiURL}/api/customText`, {
+        method: "POST",
         credentials: "include",
         body: formData,
       })
@@ -153,10 +183,7 @@ const SettingInner = () => {
         })
         .then((data) => {          
           // console.log('Success:', data);
-          if (id==0) {
-            nav(`/setting/${data.data.id}`)
-          } 
-          getData(data.data.id);
+          nav(`/customText/${data.data.id}`)
           showNotf(true, data.message);
         })
         .catch((error) => {
@@ -168,21 +195,13 @@ const SettingInner = () => {
     }    
   }
 
-  
-  if (notFound) {
-    return ( 
-      <div className='error-container'>
-        {error}
-      </div>
-    )
-  }
 
   return (
     <CRow>
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader className='card__header'>
-            <h3> Setting </h3>
+            <h3> CustomText Create </h3>
             <div className='card__header--btns'>
                 <CButton
                     color="primary"
@@ -198,7 +217,7 @@ const SettingInner = () => {
                     color="secondary"
                     className='flexButton'
                     // onClick={() => null}
-                    href='#/setting'
+                    href='#/customText'
                     disabled={loading}
                 >
                   <CIcon icon={cilXCircle}/>
@@ -208,7 +227,7 @@ const SettingInner = () => {
           </CCardHeader>
           <CCardBody>
             <p className="text-body-secondary small">
-              You can {id==0 ? "create" : "update"} <i>Setting</i>
+              You can create <i>Custom Text</i>
             </p>
 
             <CForm
@@ -217,36 +236,6 @@ const SettingInner = () => {
               // validated={validated}
               onSubmit={handleSubmit}
             >
-            
-                <CCol md={2} className="mb-3">
-                  <CFormLabel htmlFor="id">
-                    ID 
-                  </CFormLabel>
-                  <CFormInput
-                    type="number"
-                    id="id"
-                    name='id'
-                    placeholder="Will create automatically"
-                    disabled
-                    value={data?.id || ""}
-                  />
-                </CCol>
-
-                <CCol md={12} className="mb-3">
-                  <CFormLabel htmlFor="value">
-                    Value
-                  </CFormLabel>
-                  <CFormInput
-                    type="text"
-                    id="value"
-                    name='value'
-                    placeholder="Value"
-                    value={data?.value || ""}
-                    onChange={handleData}
-                    feedbackInvalid={validationErrors?.value}
-                    invalid={!!validationErrors?.value}
-                  />
-                </CCol>
                 
                 <CCol md={6} className="mb-3">
                   <CFormLabel htmlFor="keyInput">
@@ -269,7 +258,6 @@ const SettingInner = () => {
                 <CCol md={6} className="mb-3">
                   <CFormLabel htmlFor="key">
                     Key (formatted)
-                    {/* <span className='inputRequired' title='Required'>*</span> */}
                   </CFormLabel>
                   <CFormInput
                     type="text"
@@ -281,6 +269,59 @@ const SettingInner = () => {
                     disabled
                   />
                 </CCol>
+
+                <CCol md={12} className='mb-3'>
+                  <span> Translations: </span>
+                  <CTabs activeItemKey="en" className='mt-2'>
+                    <CTabList variant="tabs">
+                      {
+                        langs?.length &&
+                        langs.map(lang => (
+                          <CTab
+                            itemKey={lang} 
+                            key={lang}
+                            className={
+                              validationErrors && Object.keys(validationErrors)?.some(i => i?.split("-")[1] == lang) ?
+                              "translationError" :
+                              ""
+                            }
+                          >
+                            {lang.toUpperCase()}
+                          </CTab>
+                        ))
+                      }
+                    </CTabList>
+                    <CTabContent>
+                      {
+                        data?.translation?.length &&
+                        data?.translation?.map((data, index) => (
+                          <CTabPanel className="p-3" itemKey={data.langCode} key={data.langCode}>
+                            
+                            <CCol md={12} className="mb-3">
+                                <CFormLabel htmlFor={`value-${data.langCode}`}>
+                                    Value ({data.langCode}) 
+                                </CFormLabel>
+
+                                <CFormTextarea
+                                    className='form__textarea'
+                                    id={`value-${data.langCode}`}
+                                    name={`value-${data.langCode}`}
+                                    placeholder={ `value-${data.langCode}`}
+                                    value={data?.value}
+                                    onChange={(e) => handleData(e, data.langCode)}
+                                    feedbackInvalid={validationErrors && validationErrors[`value-${data.langCode}`]} 
+                                    invalid={!!validationErrors && !!validationErrors[`value-${data.langCode}`]}
+                                />
+                            </CCol>
+
+                          </CTabPanel>
+                        ))
+                      }
+                    </CTabContent>
+                  </CTabs>
+                </CCol>
+
+                
 
                 <div className='card__header--btns'>
                   <CButton
@@ -296,7 +337,7 @@ const SettingInner = () => {
                   <CButton
                     color="secondary"
                     className='flexButton'
-                    href='#/setting'
+                    href='#/customText'
                   >
                     <CIcon icon={cilXCircle}/>
                     Cancel
@@ -316,4 +357,4 @@ const SettingInner = () => {
   )
 }
 
-export default SettingInner
+export default CustomTextCreate

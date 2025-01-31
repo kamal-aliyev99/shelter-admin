@@ -93,6 +93,7 @@ const OurValue = () => {
 
     fetch(`${apiURL}/api/ourValues/${id}`, {
       method: "DELETE",
+      credentials: "include",
     })
       .then((res) => {        
         if (res.ok) {

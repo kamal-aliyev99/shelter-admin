@@ -8,6 +8,7 @@ import {
   CForm,
   CFormInput,
   CFormLabel,
+  CFormTextarea,
   CRow,
   CSpinner,
   CTab,
@@ -20,29 +21,35 @@ import CIcon from '@coreui/icons-react';
 import {
   cilSave,
   cilXCircle,
+  cilTrash
 } from '@coreui/icons'
 import { useDispatch, useSelector } from 'react-redux';
 import { json, useNavigate, useParams } from 'react-router-dom';
 import * as Yup from 'yup';
 import Toast from '../../components/Toast';
-import slugify from 'slugify';
 
 
 
 //    V A L I D A T I O N
 
 const validationSchema = Yup.object({
-  slug: Yup.string().max(255, 'Slug must be at most 255 characters').required('key is required'),
+  linkedin: Yup.string().url().max(255, 'link must be at most 255 characters').required(),
   translation: Yup.array()
     .of(
       Yup.object().shape({
-        langCode: Yup.string().max(10, 'LangCode must be at most 10 characters').required('LangCode is required'),
-        title: Yup.string().max(255, 'Title must be at most 255 characters')
+        langCode: Yup.string().max(3, 'langCode must be at most 3 characters').required('LangCode is required'),
+        name: Yup.string().max(255, 'name must be at most 255 characters'),
+        position: Yup.string().max(255, 'position must be at most 255 characters').optional()
       })
     )
     .min(1, 'At least one translation object is required') // Arrayda minimum 1 obyekt
     .required('Translation is required'),
 });
+
+const imageValidation = Yup.mixed()
+  .test('is-image', 'Only image files are allowed', (value) => {
+    return value && value.type.startsWith('image/');
+  })
 
 const validateForm = async (formData) => {
   try {
@@ -57,24 +64,52 @@ const validateForm = async (formData) => {
   }
 };
 
+const validateImage = async (file) => {
+    try {
+      await imageValidation.validate(file, { abortEarly: false });
+      return;
+    } catch (err) {
+      const validationErrors = {};  
+      validationErrors.image = err.inner[0].message;
+      return validationErrors;
+    }
+  };
 
-//    productType    Component
 
-const ProductTypeCreate = () => {  
+//    TeamCreate    Component
+
+const TeamCreate = () => {  
   const apiURL = useSelector((state) => state.apiURL);  
   const langs = useSelector((state) => state.langs);  
   const nav = useNavigate();
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState();
-  const [data, setData] = useState({  
-    slug: "",
+  const [data, setData] = useState({ 
+    linkedin: "", 
     translation: []
   });
+  const [file, setFile] = useState(null);
+  const [previewImage, setPreviewImage] = useState();
 
   function showNotf(ok, message) {
     dispatch({type: "set", toast: (Toast(ok, message))()})
   }
+
+  function handleDeleteDownloadedImage() {
+    setPreviewImage(undefined);
+    setFile(null);
+    document.getElementById("image").value = "";
+  }
+
+  useEffect(() => {
+    if (file) {
+      const previewUrl = URL.createObjectURL(file);
+      setPreviewImage(previewUrl);
+    } else {
+      setPreviewImage("");
+    }
+  }, [file]) 
 
   useEffect(() => {
     if (!data.translation.length) {
@@ -83,7 +118,8 @@ const ProductTypeCreate = () => {
         translation : 
           langs.map(lang => ({
             langCode: lang,
-            title: ""
+            name: "",
+            position: ""
           }))
       }))
     }
@@ -92,9 +128,10 @@ const ProductTypeCreate = () => {
   function handleData(e, lang) {
     const name = e.target.name;
     const value = e.target.value;
+    
     if (lang) {
       const currentTranslation = data.translation.find((item) => item.langCode == lang)
-      const field = name.split(`-${lang}`)[0]        
+      const field = name.split(`-${lang}`)[0];     
 
       setData(prew => ({
         ...prew,
@@ -106,13 +143,6 @@ const ProductTypeCreate = () => {
           }
         ]
       }))
-
-      if (lang == "en" && field == "title") {   
-        setData(prew => ({
-          ...prew,
-          slug: slugify(value, { lower: true, strict: true })
-        }))
-      }
       
     } else {
       setData(prew => {
@@ -122,18 +152,18 @@ const ProductTypeCreate = () => {
         }
       })
     }
-  }
-  
+  } 
 
   async function handleSubmit(e) {
     e?.preventDefault();
     setLoading(true)
 
     const formValidationErrors = await validateForm(data);
+    const imageValidationErrors = file && await validateImage(file);
     
-    if (formValidationErrors) {
+    if (formValidationErrors || imageValidationErrors) {
 
-      let err = {...formValidationErrors} 
+      let err = {...formValidationErrors, ...imageValidationErrors} 
 
       for (const [key, value] of Object.entries(formValidationErrors)) {
         if (key.includes("translation[")) {
@@ -150,18 +180,20 @@ const ProductTypeCreate = () => {
 
     } else {
       data.translation.forEach(item => {
-        if (!item.title) {
-          item.title = data.slug;
+        if (!item.name) {
+          item.name = data?.translation?.find(i => i.langCode == "en")?.name;
         }
       })
       
       setValidationErrors(undefined);
 
       const formData = new FormData();
-      formData.append('slug', data.slug);
       formData.append('translation', JSON.stringify(data.translation));
+      formData.append("linkedin", data.linkedin) 
+      formData.append("image", file || null) 
 
-      fetch(`${apiURL}/api/productType`, {
+
+      fetch(`${apiURL}/api/team`, {
         method: "POST",
         credentials: "include",
         body: formData,
@@ -178,7 +210,7 @@ const ProductTypeCreate = () => {
         })
         .then((data) => {          
           // console.log('Success:', data);
-          nav(`/productType/${data.data.id}`)
+          nav(`/team/${data.data.id}`)
           showNotf(true, data.message);
         })
         .catch((error) => {
@@ -196,7 +228,7 @@ const ProductTypeCreate = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader className='card__header'>
-            <h3> Product Type Create </h3>
+            <h3> Team Member Create </h3>
             <div className='card__header--btns'>
                 <CButton
                     color="primary"
@@ -212,7 +244,7 @@ const ProductTypeCreate = () => {
                     color="secondary"
                     className='flexButton'
                     // onClick={() => null}
-                    href='#/productType'
+                    href='#/team'
                     disabled={loading}
                 >
                   <CIcon icon={cilXCircle}/>
@@ -222,24 +254,59 @@ const ProductTypeCreate = () => {
           </CCardHeader>
           <CCardBody>
             <p className="text-body-secondary small">
-              You can create <i>Product Type</i>
+              You can create <i>Team member</i>
             </p>
 
             <CForm
               className="row g-3 needs-validation mt-2"
+              // noValidate
+              // validated={validated}
               onSubmit={handleSubmit}
             >
+              <CCol md={12} className="mb-3">
+                <CFormLabel htmlFor="image" className='mb-3'>Image</CFormLabel>
+                <div className='fileInput'>
+                  {
+                    previewImage &&
+                    <div className='mb-3 fileInput__downloadImage'>
+                      <div className='fileInput__downloadImage--image'>
+                        <img src={previewImage}/>
+
+                        <span 
+                          className='fileInput__downloadImage--delete' 
+                          title='Delete'
+                          onClick={handleDeleteDownloadedImage}
+                        >
+                          <CIcon icon={cilTrash}/>
+                        </span>
+                      </div>
+                    </div>
+                  }
+                </div>
+                
+                <CFormInput
+                  className='fileInput__input'
+                  type="file"
+                  id="image"
+                  name='image'
+                  accept='image/*'
+                  onChange={(e) => setFile(e.target.files[0])}
+                  feedbackInvalid={validationErrors?.image}
+                  invalid={!!validationErrors?.image}
+                />
+              </CCol>
+
               <CCol md={6} className="mb-3">
-                <CFormLabel htmlFor="slug">
-                  Slug (formatted)
+                <CFormLabel htmlFor="linkedin">
+                  LinkedIn link
                 </CFormLabel>
                 <CFormInput
                   type="text"
-                  id="slug"
-                  name="slug"
-                  placeholder="Will create automatically"
-                  value={data?.slug}
-                  disabled
+                  id="linkedin"
+                  name="linkedin"    
+                  placeholder="LinkedIn link"
+                  value={data?.linkedin}
+                  onChange={handleData}
                 />
               </CCol>
 
@@ -254,11 +321,13 @@ const ProductTypeCreate = () => {
                           itemKey={lang} 
                           key={lang}
                           disabled={
-                              !data?.slug && lang != "en"
-                            }
+                            !data?.translation?.find(i => i.langCode == "en")?.name &&
+                            lang != "en"
+                          }
                           className={
                             validationErrors && Object.keys(validationErrors)?.some(i => i?.split("-")[1] == lang) ?
-                            "translationError" : ""
+                            "translationError" :
+                            ""
                           }
                         >
                           {lang.toUpperCase()}
@@ -271,28 +340,48 @@ const ProductTypeCreate = () => {
                       data?.translation?.length &&
                       data?.translation?.map((data, index) => (
                         <CTabPanel className="p-3" itemKey={data.langCode} key={data.langCode}>
-                          
+
                           <CCol md={12} className="mb-3">
-                            <CFormLabel htmlFor={`title-${data.langCode}`}>
-                              Title ({data.langCode}) 
+                            <CFormLabel htmlFor={`name-${data.langCode}`}>
+                              Name ({data.langCode}) 
                               {
-                                  data.langCode == "en" && 
-                                  <span className='inputRequired' title='Required'>*</span>
+                                data.langCode == "en" && 
+                                <span className='inputRequired' title='Required'>*</span>
                               }
                             </CFormLabel>
                             <CFormInput
                               type="text"
-                              id={`title-${data.langCode}`}
-                              name={`title-${data.langCode}`}
+                              id={`name-${data.langCode}`}
+                              name={`name-${data.langCode}`}
                               placeholder={
-                                  data.langCode == "en" ?
-                                  `Title-${data.langCode} (Required for Slug)` :
-                                  `Title-${data.langCode} (default same as slug)`
-                                }
-                              value={data?.title}
+                                data.langCode == "en" ?
+                                `name-${data.langCode} (Required at eng)` :
+                                `name-${data.langCode} (default same as name at eng)`
+                              }
+                              value={data?.name}
                               onChange={(e) => handleData(e, data.langCode)}
-                              feedbackInvalid={validationErrors && validationErrors[`title-${data.langCode}`]} 
-                              invalid={!!validationErrors && !!validationErrors[`title-${data.langCode}`]}
+                              feedbackInvalid={validationErrors && validationErrors[`name-${data.langCode}`]} 
+                              invalid={!!validationErrors && !!validationErrors[`name-${data.langCode}`]}
+                            />
+                          </CCol>
+
+                          <CCol md={12} className="mb-3">
+                            <CFormLabel htmlFor={`position-${data.langCode}`}>
+                              Position ({data.langCode}) 
+                            </CFormLabel>
+                            <CFormInput
+                              type="text"
+                              id={`position-${data.langCode}`}
+                              name={`position-${data.langCode}`}
+                              placeholder={
+                                data.langCode == "en" ?
+                                `position-${data.langCode}` :
+                                `position-${data.langCode}`
+                              }
+                              value={data?.position}
+                              onChange={(e) => handleData(e, data.langCode)}
+                              feedbackInvalid={validationErrors && validationErrors[`position-${data.langCode}`]} 
+                              invalid={!!validationErrors && !!validationErrors[`position-${data.langCode}`]}
                             />
                           </CCol>
 
@@ -302,8 +391,6 @@ const ProductTypeCreate = () => {
                   </CTabContent>
                 </CTabs>
               </CCol>
-
-              
 
               <div className='card__header--btns'>
                 <CButton
@@ -319,7 +406,7 @@ const ProductTypeCreate = () => {
                 <CButton
                   color="secondary"
                   className='flexButton'
-                  href='#/productType'
+                  href='#/team'
                 >
                   <CIcon icon={cilXCircle}/>
                   Cancel
@@ -339,4 +426,4 @@ const ProductTypeCreate = () => {
   )
 }
 
-export default ProductTypeCreate
+export default TeamCreate

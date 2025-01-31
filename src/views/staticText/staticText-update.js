@@ -150,6 +150,7 @@ const StaticTextUpdate = () => {
 
       fetch(`${apiURL}/api/staticText/${id}`, {
         method: "PATCH",
+        credentials: "include",
         body: formData,
       })
         .then((res) => {          

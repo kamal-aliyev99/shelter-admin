@@ -8,6 +8,7 @@ import {
   CForm,
   CFormInput,
   CFormLabel,
+  CFormTextarea,
   CRow,
   CSpinner
 } from '@coreui/react'
@@ -27,9 +28,11 @@ import slugify from 'slugify';
 //    V A L I D A T I O N
 
 const validationSchema = Yup.object({
-  id: Yup.number().min(0, "ID cannot be less than 0"),
-  key: Yup.string().max(255, 'key must be at most 255 characters').required('key is required'),
-  value: Yup.string().nullable(),
+  id: Yup.number().positive("ID cannot be less than 0").required('id is required'),
+  key: Yup.string().max(255, 'Key must be at most 255 characters').required('key is required'),
+  value: Yup.string(),
+  translationID : Yup.number().positive().nullable(), // hemin dilde tercume yoxdusa null,, request'de gonderilmeyecek!
+  langCode: Yup.string().max(10, "LangCode must be at most 10 characters!")
 });
 
 const validateForm = async (formData) => {
@@ -46,11 +49,11 @@ const validateForm = async (formData) => {
 };
 
 
-//    setting    Component
+//    customText    Component
 
-const SettingInner = () => {
+const CustomTextUpdate = () => {
   const apiURL = useSelector((state) => state.apiURL);  
-  const nav = useNavigate();
+  const lang = useSelector((state) => state.lang);  
   const dispatch = useDispatch();
   const {id} = useParams();
   const [notFound, setNotFound] = useState(false);
@@ -60,7 +63,9 @@ const SettingInner = () => {
   const [data, setData] = useState({  
     id: 0,
     key: "",
-    value: ""
+    value: "",
+    translationID : null,
+    langCode: lang
   });
   const [primaryInput, setPrimaryInput] = useState("")
 
@@ -87,7 +92,7 @@ const SettingInner = () => {
   }
 
   function getData(id) {
-    fetch(`${apiURL}/api/setting/${id}`)
+    fetch(`${apiURL}/api/customText/${id}?lang=${lang}`)
       .then(res => {
         if (res.ok) {
           return res.json();
@@ -98,8 +103,17 @@ const SettingInner = () => {
           })
         }
       })
-      .then(data => {
-        setData(data)        
+      .then(data => {        
+        if (data.translationID) {
+          setData(data)
+        } else {
+          setData({
+            ...data,
+            langCode: lang,
+            value: ""
+          })
+        }
+        
         setPrimaryInput(data.key)
       })
       .catch(err => {        
@@ -109,10 +123,8 @@ const SettingInner = () => {
   }
 
   useEffect(() => {
-    id != 0 &&
-    getData(id)
-    
-  }, [apiURL, id])
+    getData(id)    
+  }, [apiURL, id, lang])
 
   async function handleSubmit(e) {
     e?.preventDefault();
@@ -131,17 +143,18 @@ const SettingInner = () => {
       setValidationErrors(undefined);
 
       const formData = new FormData();
-      id != 0 && formData.append('id', id);
+      formData.append('id', id);
       formData.append('key', data.key);
       formData.append('value', data.value);
-      
+      data.translationID && formData.append("translationID", data.translationID); 
+      formData.append("langCode", data.langCode);
 
-      fetch(`${apiURL}/api/setting/${id != 0 ? id : ""}`, {
-        method: id == 0 ? "POST" : "PATCH",
+      fetch(`${apiURL}/api/customText/${id}`, {
+        method: "PATCH",
         credentials: "include",
         body: formData,
       })
-        .then((res) => {
+        .then((res) => {          
           if (res.ok) {
             return res.json();
           } else {
@@ -152,11 +165,8 @@ const SettingInner = () => {
           }
         })
         .then((data) => {          
-          // console.log('Success:', data);
-          if (id==0) {
-            nav(`/setting/${data.data.id}`)
-          } 
-          getData(data.data.id);
+          // console.log('Success:', data); 
+          getData(id);
           showNotf(true, data.message);
         })
         .catch((error) => {
@@ -165,8 +175,8 @@ const SettingInner = () => {
         .finally(() => {
           setLoading(false)
         })
-    }    
-  }
+    }
+  }  
 
   
   if (notFound) {
@@ -182,24 +192,24 @@ const SettingInner = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader className='card__header'>
-            <h3> Setting </h3>
+            <h3> Custom Text Update </h3>
             <div className='card__header--btns'>
                 <CButton
-                    color="primary"
-                    className='flexButton'
-                    onClick={handleSubmit}
-                    disabled={loading}
+                  color="primary"
+                  className='flexButton'
+                  onClick={handleSubmit}
+                  disabled={loading}
                 >
                   <CIcon icon={cilSave}/>
                   Save
                 </CButton>
 
                 <CButton
-                    color="secondary"
-                    className='flexButton'
-                    // onClick={() => null}
-                    href='#/setting'
-                    disabled={loading}
+                  color="secondary"
+                  className='flexButton'
+                  // onClick={() => null}
+                  href='#/customText'
+                  disabled={loading}
                 >
                   <CIcon icon={cilXCircle}/>
                   Cancel
@@ -208,7 +218,7 @@ const SettingInner = () => {
           </CCardHeader>
           <CCardBody>
             <p className="text-body-secondary small">
-              You can {id==0 ? "create" : "update"} <i>Setting</i>
+              You can update <i>Custom Text</i>
             </p>
 
             <CForm
@@ -218,7 +228,7 @@ const SettingInner = () => {
               onSubmit={handleSubmit}
             >
             
-                <CCol md={2} className="mb-3">
+                <CCol md={4} className="mb-3">
                   <CFormLabel htmlFor="id">
                     ID 
                   </CFormLabel>
@@ -232,19 +242,31 @@ const SettingInner = () => {
                   />
                 </CCol>
 
-                <CCol md={12} className="mb-3">
-                  <CFormLabel htmlFor="value">
-                    Value
+                <CCol md={4} className="mb-3">
+                  <CFormLabel htmlFor="translationID">
+                  Translation ID
+                  </CFormLabel>
+                  <CFormInput
+                    type="number"
+                    id="translationID"
+                    name='translationID'
+                    placeholder="Will create automatically"
+                    disabled
+                    value={data?.translationID || ""}
+                  />
+                </CCol>
+
+                <CCol md={4} className="mb-3">
+                  <CFormLabel htmlFor="langCode">
+                    Lang Code
                   </CFormLabel>
                   <CFormInput
                     type="text"
-                    id="value"
-                    name='value'
-                    placeholder="Value"
-                    value={data?.value || ""}
-                    onChange={handleData}
-                    feedbackInvalid={validationErrors?.value}
-                    invalid={!!validationErrors?.value}
+                    id="langCode"
+                    name='langCode'
+                    placeholder="LangCode"
+                    disabled
+                    value={data?.langCode || ""}
                   />
                 </CCol>
                 
@@ -282,6 +304,23 @@ const SettingInner = () => {
                   />
                 </CCol>
 
+                <CCol md={12} className="mb-3">
+                    <CFormLabel htmlFor="value">
+                        Value ({lang})
+                        <span className='inputRequired' title='Required'>*</span>
+                    </CFormLabel>
+                    <CFormTextarea
+                        className='form__textarea'
+                        id={`value`}
+                        name={`value`}
+                        placeholder={data?.translationID ? "Value" : "No Content this language"}
+                        value={data?.value || ""}
+                        onChange={(e) => handleData(e, data.langCode)}
+                        feedbackInvalid={validationErrors?.value} 
+                        invalid={!!validationErrors?.value}
+                    />
+                </CCol>
+
                 <div className='card__header--btns'>
                   <CButton
                     // type='submit'
@@ -296,7 +335,7 @@ const SettingInner = () => {
                   <CButton
                     color="secondary"
                     className='flexButton'
-                    href='#/setting'
+                    href='#/customText'
                   >
                     <CIcon icon={cilXCircle}/>
                     Cancel
@@ -316,4 +355,4 @@ const SettingInner = () => {
   )
 }
 
-export default SettingInner
+export default CustomTextUpdate

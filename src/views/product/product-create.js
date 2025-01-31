@@ -25,10 +25,13 @@ import {
   cilTrash
 } from '@coreui/icons'
 import { useDispatch, useSelector } from 'react-redux';
-import { json, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import * as Yup from 'yup';
 import Toast from '../../components/Toast';
-import slugify from 'slugify';
+import slugify from 'slugify'; 
+// import { Editor } from "react-draft-wysiwyg";
+// import { EditorState } from "draft-js";
+// import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 
 
 
@@ -37,11 +40,15 @@ import slugify from 'slugify';
 const validationSchema = Yup.object({
   slug: Yup.string().max(255, 'slug must be at most 255 characters').required('slug is required'),
   productType_id: Yup.number().positive("ID cannot be less than 0").required('productType_id is required'),
+  date: Yup.date().optional(),
   translation: Yup.array()
     .of(
       Yup.object().shape({
         langCode: Yup.string().max(10, 'langCode must be at most 10 characters').required('LangCode is required'),
         title: Yup.string().max(255, 'value must be at most 255 characters'),
+        desc: Yup.string().optional(),
+        location: Yup.string().max(255, 'value must be at most 255 characters'),
+        client: Yup.string().max(255, 'value must be at most 255 characters')
       })
     )
     .min(1, 'At least one translation object is required') // Arrayda minimum 1 obyekt
@@ -78,9 +85,9 @@ const validateImage = async (file) => {
   };
 
 
-//    CategoryCreate    Component
+//    ProductCreate    Component 
 
-const CategoryCreate = () => {  
+const ProductCreate = () => {  
   const apiURL = useSelector((state) => state.apiURL);  
   const langs = useSelector((state) => state.langs);  
   const lang = useSelector((state) => state.lang);  
@@ -91,6 +98,7 @@ const CategoryCreate = () => {
   const [data, setData] = useState({  
     slug: "",
     productType_id: 0,
+    date: "",
     translation: []
   });
   const [file, setFile] = useState(null);
@@ -98,7 +106,7 @@ const CategoryCreate = () => {
   const [options, setOptions] = useState([]);
 
   function getOptionDatas() {
-    fetch(`${apiURL}/api/productType?lang=${lang}`)
+    fetch(`${apiURL}/api/category?lang=${lang}`)
       .then(res => {
         if (res.ok) {
           return res.json();
@@ -148,7 +156,10 @@ const CategoryCreate = () => {
         translation : 
           langs.map(lang => ({
             langCode: lang,
-            title: ""
+            title: "",
+            desc: "",
+            client: "", 
+            location: ""
           }))
       }))
     }
@@ -230,7 +241,7 @@ const CategoryCreate = () => {
       formData.append("image", file || null) 
 
 
-      fetch(`${apiURL}/api/category`, {
+      fetch(`${apiURL}/api/product`, {
         method: "POST",
         credentials: "include",
         body: formData,
@@ -265,7 +276,7 @@ const CategoryCreate = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader className='card__header'>
-            <h3> Category Create </h3>
+            <h3> Product Create </h3>
             <div className='card__header--btns'>
                 <CButton
                     color="primary"
@@ -281,7 +292,7 @@ const CategoryCreate = () => {
                     color="secondary"
                     className='flexButton'
                     // onClick={() => null}
-                    href='#/category'
+                    href='#/product'
                     disabled={loading}
                 >
                   <CIcon icon={cilXCircle}/>
@@ -291,7 +302,7 @@ const CategoryCreate = () => {
           </CCardHeader>
           <CCardBody>
             <p className="text-body-secondary small">
-              You can create <i>Category</i>
+              You can create <i>Product</i>
             </p>
 
             <CForm
@@ -332,25 +343,39 @@ const CategoryCreate = () => {
               </CCol>
 
               <CCol md={12} className="mb-3">
-                <CFormLabel htmlFor="productType">
-                  ProductType
+                <CFormLabel htmlFor="category">
+                  Category
                   <span className='inputRequired' title='Required'>*</span>
                 </CFormLabel>
                 <CFormSelect
                     aria-label="Product-Type"
-                    id='productType'
-                    name='productType_id'
+                    id='category'
+                    name='category_id'
                     options={[
-                        {label: "Select Product-Type", value: 0, disabled: true},
+                        {label: "Select Category", value: 0, disabled: true},
                         ...options.map(item => ({
                         label: item.title,
                         value: item.id
                         }))
                     ]}
                     onChange={handleData}
-                    value={data.productType_id}
-                    feedbackInvalid={validationErrors?.productType_id}
-                    invalid={!!validationErrors?.productType_id}
+                    value={data.category_id}
+                    feedbackInvalid={validationErrors?.category_id}
+                    invalid={!!validationErrors?.category_id}
+                />
+              </CCol>
+
+              <CCol md={6} className="mb-3">
+                <CFormLabel htmlFor="date">
+                  Date
+                </CFormLabel>                
+                <input
+                  name='date'
+                  id='date'
+                  className='form-control'
+                  type='date'
+                  value={data.date}
+                  onChange={handleData}
                 />
               </CCol>
 
@@ -422,6 +447,55 @@ const CategoryCreate = () => {
                               invalid={!!validationErrors && !!validationErrors[`title-${data.langCode}`]}
                             />
                           </CCol>
+
+                          <CCol md={12} className="mb-3">
+                            <CFormLabel htmlFor={`client-${data.langCode}`}>
+                              Client ({data.langCode}) 
+                            </CFormLabel>
+                            <CFormInput
+                              type="text"
+                              id={`client-${data.langCode}`}
+                              name={`client-${data.langCode}`}
+                              placeholder={`client-${data.langCode}`}
+                              value={data?.client}
+                              onChange={(e) => handleData(e, data.langCode)}
+                              feedbackInvalid={validationErrors && validationErrors[`client-${data.langCode}`]} 
+                              invalid={!!validationErrors && !!validationErrors[`client-${data.langCode}`]}
+                            />
+                          </CCol>
+
+                          <CCol md={12} className="mb-3">
+                            <CFormLabel htmlFor={`location-${data.langCode}`}>
+                              Location ({data.langCode}) 
+                            </CFormLabel>
+                            <CFormInput
+                              type="text"
+                              id={`location-${data.langCode}`}
+                              name={`location-${data.langCode}`}
+                              placeholder={`location-${data.langCode}`}
+                              value={data?.location}
+                              onChange={(e) => handleData(e, data.langCode)}
+                              feedbackInvalid={validationErrors && validationErrors[`location-${data.langCode}`]} 
+                              invalid={!!validationErrors && !!validationErrors[`location-${data.langCode}`]}
+                            />
+                          </CCol>
+
+                          <CCol md={12} className="mb-3">
+                            <CFormLabel htmlFor={`location-${data.langCode}`}>
+                              Description ({data.langCode}) 
+                            </CFormLabel>
+                            {/* <Editor
+                              // editorState={editorState}
+                              toolbarClassName="toolbarClassName"
+                              wrapperClassName="wrapperClassName"
+                              editorClassName="editorClassName"
+                              // onEditorStateChange={onEditorStateChange}
+                            /> */}
+                          </CCol>
+
+
+
+
                         </CTabPanel>
                       ))
                     }
@@ -443,7 +517,7 @@ const CategoryCreate = () => {
                 <CButton
                   color="secondary"
                   className='flexButton'
-                  href='#/category'
+                  href='#/product'
                 >
                   <CIcon icon={cilXCircle}/>
                   Cancel
@@ -463,4 +537,4 @@ const CategoryCreate = () => {
   )
 }
 
-export default CategoryCreate
+export default ProductCreate

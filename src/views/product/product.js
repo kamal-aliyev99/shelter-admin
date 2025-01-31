@@ -5,6 +5,7 @@ import {
   CCardBody,
   CCardHeader,
   CCol,
+  CFormSelect,
   CModal,
   CModalBody,
   CModalFooter,
@@ -25,18 +26,27 @@ import {
   cilPencil,
   cilDescription,
   cilPlus,
+  cilImageBroken
 } from '@coreui/icons'
 import { useDispatch, useSelector } from 'react-redux';
 import Toast from '../../components/Toast';
 
-const Setting = () => {
+
+const Product = () => {
   const dispatch = useDispatch();
   const [datas, setDatas] = useState([]);
+  const [showdatas, setShowDatas] = useState([]);
+  const [filterDatas, setFilterDatas] = useState([]);
+  const [selectedFilter, setSelectedFilter] = useState(0);
   const [selectedData, setSelectedData] = useState();
   const [modalVisible, setModalVisible] = useState(false);
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
   const apiURL = useSelector((state) => state.apiURL);  
-  const [loadingIDs, setLoadingIDs] = useState([])
+  const lang = useSelector((state) => state.lang);  
+  const [loadingIDs, setLoadingIDs] = useState([])  
+
+  console.log(datas[0]);  // show some fields in model 
+  
 
   function showNotf(ok, message) {
     dispatch({type: "set", toast: (Toast(ok, message))()})
@@ -63,7 +73,7 @@ const Setting = () => {
   }
 
   function getDatas() {
-    fetch(`${apiURL}/api/setting`)
+    fetch(`${apiURL}/api/product?lang=${lang}`)
       .then(res => {
         if (res.ok) {
           return res.json();
@@ -82,14 +92,44 @@ const Setting = () => {
       })
   }
 
+  function getFilterDatas() {
+    fetch(`${apiURL}/api/category?lang=${lang}`)
+      .then(res => {
+        if (res.ok) {
+          return res.json();
+        } else {
+          return res.json().then(err =>{
+            throw new Error(`${res.status}: ${err.message}`)
+          })
+        }
+      })
+      .then(datas => {
+        const sortedData = datas.sort((a,b) => a.id - b.id);
+        setFilterDatas(sortedData)
+      })
+      .catch(err => {
+        console.error(err);
+      })
+  }
+
   useEffect(() => {
     getDatas();
-  }, [apiURL])
+    getFilterDatas();
+  }, [apiURL, lang])
+
+  useEffect(() => {
+    if (+selectedFilter) {
+      setShowDatas(datas.filter(i => i.productType_id == selectedFilter))
+    } else {
+      setShowDatas(datas)
+    }
+  }, [selectedFilter, datas])
+  
 
   function deleteData(id) {
     setLoadingIDs(prew => [...prew, id])
 
-    fetch(`${apiURL}/api/setting/${id}`, {
+    fetch(`${apiURL}/api/product/${id}`, {
       method: "DELETE",
       credentials: "include",
     })
@@ -99,7 +139,7 @@ const Setting = () => {
           getDatas();
           showNotf(true, "Deleted successfully");
         } else {
-          showNotf(false, `${res.status}: An error occurred while deleting setting`);
+          showNotf(false, `${res.status}: An error occurred while deleting product`);
           return res.json().then(err =>{
             console.error(err);
           })
@@ -111,47 +151,72 @@ const Setting = () => {
       })
   }
 
+  
 
   return (
     <CRow>
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader className='card__header'>
-            <h3> Setting </h3>
-            <CButton
-              color="primary"
-              className='flexButton'
-              href='#/setting/0'
-            >
-              <CIcon icon={cilPlus}/>
-              Create
-            </CButton>
+            <h3> Products </h3>
+            <div className='section__header--flex flexButton'>
+              <CFormSelect
+                aria-label="Product-Type"
+                options={[
+                  {label: "All", value: 0},
+                  ...filterDatas.map(item => ({
+                    label: item.title,
+                    value: item.id
+                  }))
+                ]}
+                onChange={(e) => setSelectedFilter(e.target.value)}
+                value={selectedFilter}
+              />
+              <CButton
+                color="primary"
+                className='flexButton'
+                href='#/product/add'
+              >
+                <CIcon icon={cilPlus}/>
+                Create
+              </CButton>
+            </div>
           </CCardHeader>
           <CCardBody>
             <p className="text-body-secondary small">
-              You can add, update and delete <i>Setting</i>
+              You can add, update and delete <i>Product</i>
             </p>
             <div className='table-container'>
               <CTable striped hover className='main-table'>
                 <CTableHead>
                   <CTableRow>
                     <CTableHeaderCell scope="col">ID</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Key</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Value</CTableHeaderCell>
+                    <CTableHeaderCell scope="col">Image</CTableHeaderCell>
+                    <CTableHeaderCell scope="col">Slug</CTableHeaderCell>
+                    <CTableHeaderCell scope="col">Title ({lang})</CTableHeaderCell>
                     <CTableHeaderCell scope="col" className='table__options'>Options</CTableHeaderCell>
                   </CTableRow>
                 </CTableHead>
                 <CTableBody>
                   {
-                    datas.map(data => (
+                    showdatas.map(data => (
                       <CTableRow 
                         key={data.id} 
                         align='middle'
                         className="tableRow"
                       >
                         <CTableHeaderCell scope="row">{data.id}</CTableHeaderCell>
-                        <CTableDataCell>{data.key}</CTableDataCell>
-                        <CTableDataCell>{data.value}</CTableDataCell>
+                        <CTableDataCell>
+                          {
+                            data.image ?
+                            <div className='table__image--S'>
+                              <img src={data.image} alt={data.page}/>
+                            </div> :
+                            <CIcon icon={cilImageBroken} title="There isn't image"/>
+                          }
+                        </CTableDataCell>
+                        <CTableDataCell>{data.slug}</CTableDataCell>
+                        <CTableDataCell>{data.title}</CTableDataCell>
                         <CTableDataCell className='table__options--item'>
                           <CButton
                             color="info"
@@ -167,7 +232,7 @@ const Setting = () => {
                             color="warning"
                             variant="outline"
                             title='Edit'
-                            href={`#/setting/${data.id}`}
+                            href={`#/product/${data.id}`}
                           >
                             <CIcon icon={cilPencil}/>
                           </CButton>
@@ -194,31 +259,57 @@ const Setting = () => {
             </div>
 
 
-            {/* INFO Modal */}
+            {/* INFO Modal       add producttype title ??? !!!     */}
 
             <CModal scrollable visible={modalVisible} onClose={() => closeModal()} className='infoModal'>
               <CModalHeader>
-                <CModalTitle>Setting</CModalTitle>
+                <CModalTitle>Product</CModalTitle>
               </CModalHeader>
               <CModalBody>
                 
                 <div className='infoModal__item'>
                   <strong> ID </strong>
-                  <p> {selectedData?.id} </p>
+                  <p> {selectedData?.id} </p>  
+                </div>
+
+                <hr/>
+                
+                <div className='infoModal__item'>
+                  <strong> Image </strong>
+                  {
+                    selectedData?.image ?
+                    <div className='infoModal__item--image'>
+                      <img src={selectedData?.image} alt={selectedData?.title}/>
+                    </div> :
+                    <div className='infoModal__item--icon'>
+                      <CIcon icon={cilImageBroken} title="There isn't image"/>
+                    </div>
+                  }
                 </div>
 
                 <hr/>
 
                 <div className='infoModal__item'>
-                  <strong> Key </strong>
-                  <p> {selectedData?.key} </p>
+                  <strong> Category </strong>
+                  <p>
+                    {
+                      filterDatas.find(i => i.id == selectedData?.category_id)?.title
+                    }
+                  </p>
                 </div>
 
                 <hr/>
 
                 <div className='infoModal__item'>
-                  <strong> Value </strong>
-                  <p> {selectedData?.value} </p>
+                  <strong> Slug </strong>
+                  <p> {selectedData?.slug} </p>
+                </div>
+
+                <hr/>
+
+                <div className='infoModal__item'>
+                  <strong> Title ({lang}) </strong>
+                  <p> {selectedData?.title} </p>
                 </div>
 
               </CModalBody>
@@ -245,7 +336,7 @@ const Setting = () => {
                 </CModalTitle>
               </CModalHeader>
               <CModalBody>
-                Do you want to delete <strong>{selectedData?.key}</strong> Setting? 
+                Do you want to delete <strong>{selectedData?.slug}</strong> Product? 
               </CModalBody>
               <CModalFooter>
                 <CButton color="secondary" onClick={() => closeConfirmModal()}>
@@ -269,4 +360,4 @@ const Setting = () => {
   )
 }
 
-export default Setting
+export default Product

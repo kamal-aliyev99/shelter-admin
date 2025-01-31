@@ -92,6 +92,7 @@ const StaticImage = () => {
 
     fetch(`${apiURL}/api/staticImage/${id}`, {
       method: "DELETE",
+      credentials: "include",
     })
       .then((res) => {        
         if (res.ok) {

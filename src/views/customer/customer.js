@@ -22,6 +22,7 @@ import {
 import CIcon from '@coreui/icons-react';
 import {
   cilTrash,
+  cilImageBroken,
   cilPencil,
   cilDescription,
   cilPlus,
@@ -29,7 +30,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import Toast from '../../components/Toast';
 
-const Setting = () => {
+const Customer = () => {
   const dispatch = useDispatch();
   const [datas, setDatas] = useState([]);
   const [selectedData, setSelectedData] = useState();
@@ -63,7 +64,7 @@ const Setting = () => {
   }
 
   function getDatas() {
-    fetch(`${apiURL}/api/setting`)
+    fetch(`${apiURL}/api/customer`) 
       .then(res => {
         if (res.ok) {
           return res.json();
@@ -89,7 +90,7 @@ const Setting = () => {
   function deleteData(id) {
     setLoadingIDs(prew => [...prew, id])
 
-    fetch(`${apiURL}/api/setting/${id}`, {
+    fetch(`${apiURL}/api/customer/${id}`, {
       method: "DELETE",
       credentials: "include",
     })
@@ -99,7 +100,7 @@ const Setting = () => {
           getDatas();
           showNotf(true, "Deleted successfully");
         } else {
-          showNotf(false, `${res.status}: An error occurred while deleting setting`);
+          showNotf(false, `${res.status}: An error occurred while deleting customer`);
           return res.json().then(err =>{
             console.error(err);
           })
@@ -117,11 +118,11 @@ const Setting = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader className='card__header'>
-            <h3> Setting </h3>
+            <h3> Customer </h3>
             <CButton
               color="primary"
               className='flexButton'
-              href='#/setting/0'
+              href='#/customer/0'
             >
               <CIcon icon={cilPlus}/>
               Create
@@ -129,15 +130,15 @@ const Setting = () => {
           </CCardHeader>
           <CCardBody>
             <p className="text-body-secondary small">
-              You can add, update and delete <i>Setting</i>
+              You can add, update and delete <i> Customer</i>
             </p>
             <div className='table-container'>
               <CTable striped hover className='main-table'>
                 <CTableHead>
                   <CTableRow>
                     <CTableHeaderCell scope="col">ID</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Key</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Value</CTableHeaderCell>
+                    <CTableHeaderCell scope="col">Image</CTableHeaderCell>
+                    <CTableHeaderCell scope="col">Title</CTableHeaderCell>
                     <CTableHeaderCell scope="col" className='table__options'>Options</CTableHeaderCell>
                   </CTableRow>
                 </CTableHead>
@@ -150,8 +151,16 @@ const Setting = () => {
                         className="tableRow"
                       >
                         <CTableHeaderCell scope="row">{data.id}</CTableHeaderCell>
-                        <CTableDataCell>{data.key}</CTableDataCell>
-                        <CTableDataCell>{data.value}</CTableDataCell>
+                        <CTableDataCell>
+                          {
+                            data.image ?
+                            <div className='table__image--S'>
+                              <img src={data.image} alt={data.title}/>
+                            </div> :
+                            <CIcon icon={cilImageBroken} title="There isn't image"/>
+                          }
+                        </CTableDataCell>
+                        <CTableDataCell>{data.title}</CTableDataCell>
                         <CTableDataCell className='table__options--item'>
                           <CButton
                             color="info"
@@ -167,7 +176,7 @@ const Setting = () => {
                             color="warning"
                             variant="outline"
                             title='Edit'
-                            href={`#/setting/${data.id}`}
+                            href={`#/customer/${data.id}`}
                           >
                             <CIcon icon={cilPencil}/>
                           </CButton>
@@ -198,7 +207,7 @@ const Setting = () => {
 
             <CModal scrollable visible={modalVisible} onClose={() => closeModal()} className='infoModal'>
               <CModalHeader>
-                <CModalTitle>Setting</CModalTitle>
+                <CModalTitle>Customer</CModalTitle>
               </CModalHeader>
               <CModalBody>
                 
@@ -210,15 +219,30 @@ const Setting = () => {
                 <hr/>
 
                 <div className='infoModal__item'>
-                  <strong> Key </strong>
-                  <p> {selectedData?.key} </p>
+                  <strong> Image </strong>
+                  {
+                    selectedData?.image ?
+                    <div className='infoModal__item--image'>
+                      <img src={selectedData?.image} alt={selectedData?.title}/>
+                    </div> :
+                    <div className='infoModal__item--icon'>
+                      <CIcon icon={cilImageBroken} title="There isn't image"/>
+                    </div>
+                  }
                 </div>
 
                 <hr/>
 
                 <div className='infoModal__item'>
-                  <strong> Value </strong>
-                  <p> {selectedData?.value} </p>
+                  <strong> Title </strong>
+                  <p> {selectedData?.title} </p>
+                </div>
+
+                <hr/>
+
+                <div className='infoModal__item'>
+                  <strong> Show homePage </strong>
+                  <p> {selectedData?.showHomePage.toString()} </p>
                 </div>
 
               </CModalBody>
@@ -245,7 +269,7 @@ const Setting = () => {
                 </CModalTitle>
               </CModalHeader>
               <CModalBody>
-                Do you want to delete <strong>{selectedData?.key}</strong> Setting? 
+                Do you want to delete <strong>{selectedData?.title}</strong> Customer? 
               </CModalBody>
               <CModalFooter>
                 <CButton color="secondary" onClick={() => closeConfirmModal()}>
@@ -269,4 +293,4 @@ const Setting = () => {
   )
 }
 
-export default Setting
+export default Customer

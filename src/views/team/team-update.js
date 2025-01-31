@@ -9,15 +9,16 @@ import {
   CFormCheck,
   CFormInput,
   CFormLabel,
+  CFormTextarea,
   CRow,
   CSpinner
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react';
 import {
-  cilTrash,
   cilSave,
   cilXCircle,
-  cilImageBroken
+  cilTrash,
+  cilImageBroken,
 } from '@coreui/icons'
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -30,16 +31,13 @@ import slugify from 'slugify';
 //    V A L I D A T I O N
 
 const validationSchema = Yup.object({
-  id: Yup.number().min(0, "ID cannot be less than 0"),
-  page: Yup.string().max(255, 'page must be at most 255 characters').required('page is required'),
-  image: Yup.string().nullable(),
+  id: Yup.number().positive("ID cannot be less than 0").required('id is required'),
+  translationID : Yup.number().positive().nullable(), // hemin dilde tercume yoxdusa null,, request'de gonderilmeyecek!
+  langCode: Yup.string().max(3, "LangCode must be at most 3 characters!"),
+  linkedin: Yup.string().url().max(255, 'link must be at most 255 characters').required(),
+  name: Yup.string().max(255, 'name must be at most 255 characters'),
+  position: Yup.string().max(255, 'position must be at most 255 characters').optional()
 });
-
-const imageValidation = Yup.mixed()
-  .test('is-image', 'Only image files are allowed', (value) => {
-    return value && value.type.startsWith('image/');
-  })
-  
 
 const validateForm = async (formData) => {
   try {
@@ -54,6 +52,11 @@ const validateForm = async (formData) => {
   }
 };
 
+const imageValidation = Yup.mixed()
+  .test('is-image', 'Only image files are allowed', (value) => {
+    return value && value.type.startsWith('image/');
+  })
+
 const validateImage = async (file) => {
   try {
     await imageValidation.validate(file, { abortEarly: false });
@@ -66,11 +69,11 @@ const validateImage = async (file) => {
 };
 
 
-//    B A N N E R    Component
+//    TeamUpdate    Component
 
-const BannerInner = () => {
+const TeamUpdate = () => {
   const apiURL = useSelector((state) => state.apiURL);  
-  const nav = useNavigate();
+  const lang = useSelector((state) => state.lang);  
   const dispatch = useDispatch();
   const {id} = useParams();
   const [notFound, setNotFound] = useState(false);
@@ -78,11 +81,14 @@ const BannerInner = () => {
   const [loading, setLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState();
   const [data, setData] = useState({  
-    id: 0,
-    page: "",
-    image: undefined
+    id: id,
+    image: undefined,
+    translationID : null,
+    langCode: lang,
+    linkedin: "",
+    name: "",
+    position: ""
   });
-  const [primaryInput, setPrimaryInput] = useState("")
   const [deleteImage, setDeleteImage] = useState(false);
   const [file, setFile] = useState(null);
   const [previewImage, setPreviewImage] = useState();
@@ -101,24 +107,6 @@ const BannerInner = () => {
     document.getElementById("image").value = "";
   }
 
-  function handleData(e) {
-    setData(prew => {
-      return {
-        ...prew,
-        [e.target.name]: e.target.value 
-      }
-    })
-  }
-
-  function handlePrimaryInput(e) {
-    const text = e.target.value;
-    setPrimaryInput(text);
-    setData(prew => ({
-      ...prew,
-      page: slugify(text, { lower: true, strict: true })
-    }))
-  }
-
   useEffect(() => {
     if (file) {
       const previewUrl = URL.createObjectURL(file);
@@ -128,8 +116,20 @@ const BannerInner = () => {
     }
   }, [file])  
 
+  function handleData(e) {
+    const name = e.target.name;
+    const value = e.target.value;
+    setData(prew => {
+      return {
+        ...prew,
+        [name]: value 
+      }
+    })
+  }
+
+
   function getData(id) {
-    fetch(`${apiURL}/api/banner/${id}`)
+    fetch(`${apiURL}/api/team/${id}?lang=${lang}`)
       .then(res => {
         if (res.ok) {
           return res.json();
@@ -140,9 +140,17 @@ const BannerInner = () => {
           })
         }
       })
-      .then(data => {
-        setData(data)        
-        setPrimaryInput(data.page)
+      .then(data => {        
+        if (data.translationID) {
+          setData(data)
+        } else {
+          setData({
+            ...data,
+            langCode: lang,
+            name: "", 
+            position: "", 
+          })
+        }        
       })
       .catch(err => {        
         setNotFound(true);
@@ -151,10 +159,8 @@ const BannerInner = () => {
   }
 
   useEffect(() => {
-    id != 0 &&
-    getData(id)
-    
-  }, [apiURL, id])
+    getData(id)    
+  }, [apiURL, id, lang])
 
   async function handleSubmit(e) {
     e?.preventDefault();
@@ -164,10 +170,7 @@ const BannerInner = () => {
     const imageValidationErrors = file && await validateImage(file);
     
     if (formValidationErrors || imageValidationErrors) {
-      const err = {
-        ...formValidationErrors,
-        ...imageValidationErrors
-      } 
+      const err = {...formValidationErrors, ...imageValidationErrors} 
 
       showNotf(false, "Please enter correct data")
       setValidationErrors(err); 
@@ -177,39 +180,41 @@ const BannerInner = () => {
       setValidationErrors(undefined);
 
       const formData = new FormData();
-      id != 0 && formData.append('id', id);
-      formData.append('page', data.page);
-  
-      if (deleteImage || (id == 0 && !file)) {
-        formData.append('image', null);      
-      } else if(id != 0 && !file) {
-        formData.append('image', data.image);
-      } else {
+      formData.append('id', id);
+      formData.append('name', data.name);
+      formData.append('position', data.position);
+      formData.append('linkedin', data.linkedin);
+      data.translationID && formData.append("translationID", data.translationID); 
+      formData.append("langCode", data.langCode);
+
+      if (deleteImage) {
+        formData.append('image', null);
+      } else if(file) {
         formData.append('image', file);
       }
-      
 
-      fetch(`${apiURL}/api/banner/${id != 0 ? id : ""}`, {
-        method: id == 0 ? "POST" : "PATCH",
+      // for (const element of formData) {
+      //   console.log(element);
+      // }
+
+      fetch(`${apiURL}/api/team/${id}`, {
+        method: "PATCH",
         credentials: "include",
         body: formData,
       })
-        .then((res) => {
+        .then((res) => {          
           if (res.ok) {
             return res.json();
           } else {
             return res.json().then(err =>{
-              // console.error(err);
+              console.error(err);
               throw new Error(`${res.status}: ${err.message}`)
             })
           }
         })
         .then((data) => {          
-          // console.log('Success:', data);
-          if (id==0) {
-            nav(`/banner/${data.data.id}`)
-          } 
-          getData(data.data.id);
+          console.log('Success:', data); 
+          getData(id);
           file && handleDeleteDownloadedImage();
           setDeleteImage(false)
           showNotf(true, data.message);
@@ -220,8 +225,8 @@ const BannerInner = () => {
         .finally(() => {
           setLoading(false)
         })
-    }    
-  }
+    }
+  }    
 
   
   if (notFound) {
@@ -237,24 +242,24 @@ const BannerInner = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader className='card__header'>
-            <h3> Banner </h3>
+            <h3> Team Member Update </h3>
             <div className='card__header--btns'>
                 <CButton
-                    color="primary"
-                    className='flexButton'
-                    onClick={handleSubmit}
-                    disabled={loading}
+                  color="primary"
+                  className='flexButton'
+                  onClick={handleSubmit}
+                  disabled={loading}
                 >
                   <CIcon icon={cilSave}/>
                   Save
                 </CButton>
 
                 <CButton
-                    color="secondary"
-                    className='flexButton'
-                    // onClick={() => null}
-                    href='#/banner'
-                    disabled={loading}
+                  color="secondary"
+                  className='flexButton'
+                  // onClick={() => null}
+                  href='#/team'
+                  disabled={loading}
                 >
                   <CIcon icon={cilXCircle}/>
                   Cancel
@@ -263,9 +268,8 @@ const BannerInner = () => {
           </CCardHeader>
           <CCardBody>
             <p className="text-body-secondary small">
-              You can {id==0 ? "create" : "update"} <i>Banner</i>
+              You can update <i>Team Member</i>
             </p>
-
 
             <CForm
               className="row g-3 needs-validation mt-2"
@@ -273,8 +277,8 @@ const BannerInner = () => {
               // validated={validated}
               onSubmit={handleSubmit}
             >
-                <CCol md={12} className="mb-3">
-                  <CFormLabel htmlFor="image" className='mb-3'>Image (banner)</CFormLabel>
+              <CCol md={12} className="mb-3">
+                  <CFormLabel htmlFor="image" className='mb-3'>Image</CFormLabel>
                   <div className='fileInput'>
                     {
                       data?.image &&
@@ -334,74 +338,118 @@ const BannerInner = () => {
                   }
                 </CCol>
             
-                <CCol md={12} className="mb-3">
-                  <CFormLabel htmlFor="id">
-                    ID 
-                  </CFormLabel>
-                  <CFormInput
-                    type="number"
-                    id="id"
-                    name='id'
-                    placeholder="Will create automatically"
-                    disabled
-                    value={data?.id || ""}
-                  />
-                </CCol>
-                
-                <CCol md={6} className="mb-3">
-                  <CFormLabel htmlFor="pageInput">
-                    Page Name
-                    <span className='inputRequired' title='Required'>*</span>
-                  </CFormLabel>
-                  <CFormInput
-                    type="text"
-                    id="pageInput"
-                    name="pageInput"
-                    placeholder="Page Name"
-                    value={primaryInput}
-                    onChange={handlePrimaryInput}
-                    required
-                    feedbackInvalid={validationErrors?.page}
-                    invalid={!!validationErrors?.page}
-                  />
-                </CCol>
+              <CCol md={4} className="mb-3">
+                <CFormLabel htmlFor="id">
+                  ID 
+                </CFormLabel>
+                <CFormInput
+                  type="number"
+                  id="id"
+                  name='id'
+                  placeholder="Will create automatically"
+                  disabled
+                  value={data?.id || ""}
+                />
+              </CCol>
 
-                <CCol md={6} className="mb-3">
-                  <CFormLabel htmlFor="page">
-                    Page name (formatted)
-                    {/* <span className='inputRequired' title='Required'>*</span> */}
-                  </CFormLabel>
-                  <CFormInput
-                    type="text"
-                    id="page"
-                    name="page"
-                    placeholder="Will create automatically"
-                    value={data?.page}
-                    // onChange={handleData}
-                    disabled
-                  />
-                </CCol>
+              <CCol md={4} className="mb-3">
+                <CFormLabel htmlFor="translationID">
+                Translation ID
+                </CFormLabel>
+                <CFormInput
+                  type="number"
+                  id="translationID"
+                  name='translationID'
+                  placeholder="Will create automatically"
+                  disabled
+                  value={data?.translationID || ""}
+                />
+              </CCol>
 
-                <div className='card__header--btns'>
-                  <CButton
-                    // type='submit'
-                    color="primary"
-                    className='flexButton'
-                    onClick={handleSubmit}
-                  >
-                    <CIcon icon={cilSave}/>
-                    Save
-                  </CButton>
+              <CCol md={4} className="mb-3">
+                <CFormLabel htmlFor="langCode">
+                  Lang Code
+                </CFormLabel>
+                <CFormInput
+                  type="text"
+                  id="langCode"
+                  name='langCode'
+                  placeholder="LangCode"
+                  disabled
+                  value={data?.langCode || ""}
+                />
+              </CCol>
 
-                  <CButton
-                    color="secondary"
-                    className='flexButton'
-                    href='#/banner'
-                  >
-                    <CIcon icon={cilXCircle}/>
-                    Cancel
-                  </CButton>
-                </div>
+              <CCol md={12} className="mb-3">
+                <CFormLabel htmlFor="name">
+                  Name ({lang})
+                  <span className='inputRequired' title='Required'>*</span>
+                </CFormLabel>
+                <CFormInput
+                  type="text"
+                  id="name"
+                  name='name'
+                  placeholder={data?.translationID ? "Name" : "No Content this language"}
+                  value={data?.name || ""}
+                  onChange={handleData}
+                  feedbackInvalid={validationErrors?.name}
+                  invalid={!!validationErrors?.name}
+                />
+              </CCol>
+
+              <CCol md={12} className="mb-3">
+                <CFormLabel htmlFor="position">
+                  Position ({lang})
+                </CFormLabel>
+                <CFormInput
+                  type="text"
+                  id="position"
+                  name='position'
+                  placeholder={data?.translationID ? "Position" : "No Content this language"}
+                  value={data?.position || ""}
+                  onChange={handleData}
+                  feedbackInvalid={validationErrors?.position}
+                  invalid={!!validationErrors?.position}
+                />
+              </CCol>
+
+              <CCol md={12} className="mb-3">
+                <CFormLabel htmlFor="linkedin">
+                  Linkedin link
+                  <span className='inputRequired' title='Required'>*</span>
+                </CFormLabel>
+                <CFormInput
+                  type="text"
+                  id="linkedin"
+                  name='linkedin'
+                  placeholder="Linkedin link"
+                  value={data?.linkedin || ""}
+                  onChange={handleData}
+                  feedbackInvalid={validationErrors?.linkedin}
+                  invalid={!!validationErrors?.linkedin}
+                />
+              </CCol>
+
+              <div className='card__header--btns'>
+                <CButton
+                  // type='submit'
+                  color="primary"
+                  className='flexButton'
+                  onClick={handleSubmit}
+                >
+                  <CIcon icon={cilSave}/>
+                  Save
+                </CButton>
+
+                <CButton
+                  color="secondary"
+                  className='flexButton'
+                  href='#/team'
+                >
+                  <CIcon icon={cilXCircle}/>
+                  Cancel
+                </CButton>
+              </div>
             </CForm>
             {
               loading &&
@@ -416,4 +464,4 @@ const BannerInner = () => {
   )
 }
 
-export default BannerInner
+export default TeamUpdate

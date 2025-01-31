@@ -146,6 +146,7 @@ const ProductTypeUpdate = () => {
 
       fetch(`${apiURL}/api/productType/${id}`, {
         method: "PATCH",
+        credentials: "include",
         body: formData,
       })
         .then((res) => {          

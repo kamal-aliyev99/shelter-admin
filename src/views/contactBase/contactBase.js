@@ -25,11 +25,12 @@ import {
   cilPencil,
   cilDescription,
   cilPlus,
+  cilLowVision
 } from '@coreui/icons'
 import { useDispatch, useSelector } from 'react-redux';
 import Toast from '../../components/Toast';
 
-const Setting = () => {
+const ContactBase = () => {
   const dispatch = useDispatch();
   const [datas, setDatas] = useState([]);
   const [selectedData, setSelectedData] = useState();
@@ -42,9 +43,62 @@ const Setting = () => {
     dispatch({type: "set", toast: (Toast(ok, message))()})
   }
 
+  function handleIsRead (id, isRead) {
+    const formData = new FormData();
+    formData.append('id', id);
+    formData.append('isRead', isRead);
+
+    fetch(`${apiURL}/api/contactBase/${id}`, {
+        method: "PATCH",
+        credentials: "include",
+        body: formData,
+      })
+        .then((res) => {          
+          if (res.ok) {
+            return res.json();
+          } else {
+            return res.json().then(err =>{
+              // console.error(err);
+              throw new Error(`${res.status}: ${err.message}`)
+            })
+          }
+        })
+        .then((data) => {          
+          // console.log('Success:', data); 
+          showNotf(true, data.message);
+        })
+        .catch((error) => {
+          showNotf(false, `${error}`)
+        })
+  }
+
   function handleView(data) {
     setSelectedData(data)
     setModalVisible(true);
+
+    if (!data.isRead) {
+        handleIsRead(data.id, true);
+        setDatas(prew => ([
+            ...prew.filter(i => i.id != data.id ),
+            {
+                ...prew.find(i => i.id == data.id ),
+                isRead: true
+            },
+        ].sort((a,b) => a.id - b.id)))
+    }
+  }
+
+  function handleUnRead (id, isRead) {
+    if (isRead) {
+        handleIsRead(id, false)
+        setDatas(prew => ([
+            ...prew.filter(i => i.id != id ),
+            {
+                ...prew.find(i => i.id == id ),
+                isRead: false
+            },
+        ].sort((a,b) => a.id - b.id)))
+    }
   }
  
   function closeModal() {
@@ -63,7 +117,7 @@ const Setting = () => {
   }
 
   function getDatas() {
-    fetch(`${apiURL}/api/setting`)
+    fetch(`${apiURL}/api/contactBase`)
       .then(res => {
         if (res.ok) {
           return res.json();
@@ -89,7 +143,7 @@ const Setting = () => {
   function deleteData(id) {
     setLoadingIDs(prew => [...prew, id])
 
-    fetch(`${apiURL}/api/setting/${id}`, {
+    fetch(`${apiURL}/api/contactBase/${id}`, {
       method: "DELETE",
       credentials: "include",
     })
@@ -99,7 +153,7 @@ const Setting = () => {
           getDatas();
           showNotf(true, "Deleted successfully");
         } else {
-          showNotf(false, `${res.status}: An error occurred while deleting setting`);
+          showNotf(false, `${res.status}: An error occurred while deleting contactBase`);
           return res.json().then(err =>{
             console.error(err);
           })
@@ -112,32 +166,26 @@ const Setting = () => {
   }
 
 
+
   return (
     <CRow>
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader className='card__header'>
-            <h3> Setting </h3>
-            <CButton
-              color="primary"
-              className='flexButton'
-              href='#/setting/0'
-            >
-              <CIcon icon={cilPlus}/>
-              Create
-            </CButton>
+            <h3> Contact Base </h3>
           </CCardHeader>
           <CCardBody>
             <p className="text-body-secondary small">
-              You can add, update and delete <i>Setting</i>
+              You can read and delete <i>Contact Messages</i>
             </p>
             <div className='table-container'>
               <CTable striped hover className='main-table'>
                 <CTableHead>
                   <CTableRow>
                     <CTableHeaderCell scope="col">ID</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Key</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Value</CTableHeaderCell>
+                    <CTableHeaderCell scope="col">Name</CTableHeaderCell>
+                    <CTableHeaderCell scope="col">Phone</CTableHeaderCell>
+                    <CTableHeaderCell scope="col">Email</CTableHeaderCell>
                     <CTableHeaderCell scope="col" className='table__options'>Options</CTableHeaderCell>
                   </CTableRow>
                 </CTableHead>
@@ -149,15 +197,24 @@ const Setting = () => {
                         align='middle'
                         className="tableRow"
                       >
-                        <CTableHeaderCell scope="row">{data.id}</CTableHeaderCell>
-                        <CTableDataCell>{data.key}</CTableDataCell>
-                        <CTableDataCell>{data.value}</CTableDataCell>
+                        <CTableHeaderCell scope="row">
+                            <span className='redDot-parent'>
+                                {data.id}
+                                {
+                                    data.isRead ?
+                                    null :
+                                    <span className='redDot'></span> 
+                                }
+                            </span>
+                        </CTableHeaderCell>
+                        <CTableDataCell>{data.name} {data.surname}</CTableDataCell>
+                        <CTableDataCell>{data.phone}</CTableDataCell>
+                        <CTableDataCell>{data.email}</CTableDataCell>
                         <CTableDataCell className='table__options--item'>
                           <CButton
                             color="info"
                             variant="outline"
                             title='View'
-                            // disabled="false"
                             onClick={() => handleView(data)}
                           >
                             <CIcon icon={cilDescription}/>
@@ -166,10 +223,10 @@ const Setting = () => {
                           <CButton
                             color="warning"
                             variant="outline"
-                            title='Edit'
-                            href={`#/setting/${data.id}`}
+                            title='Mark as unread'
+                            onClick={() => handleUnRead(data.id, data.isRead)}
                           >
-                            <CIcon icon={cilPencil}/>
+                            <CIcon icon={cilLowVision}/>
                           </CButton>
                           <CButton
                             color="danger"
@@ -198,7 +255,7 @@ const Setting = () => {
 
             <CModal scrollable visible={modalVisible} onClose={() => closeModal()} className='infoModal'>
               <CModalHeader>
-                <CModalTitle>Setting</CModalTitle>
+                <CModalTitle>Contact Message</CModalTitle>
               </CModalHeader>
               <CModalBody>
                 
@@ -210,15 +267,29 @@ const Setting = () => {
                 <hr/>
 
                 <div className='infoModal__item'>
-                  <strong> Key </strong>
-                  <p> {selectedData?.key} </p>
+                  <strong> Name </strong>
+                  <p> {selectedData?.name} {selectedData?.surname} </p>
                 </div>
 
                 <hr/>
 
                 <div className='infoModal__item'>
-                  <strong> Value </strong>
-                  <p> {selectedData?.value} </p>
+                  <strong> Phone </strong>
+                  <p> {selectedData?.phone} </p>
+                </div>
+
+                <hr/>
+
+                <div className='infoModal__item'>
+                  <strong> Email </strong>
+                  <p> {selectedData?.email} </p>
+                </div>
+
+                <hr/>
+
+                <div className='infoModal__item'>
+                  <strong> Message </strong>
+                  <p> {selectedData?.message} </p>
                 </div>
 
               </CModalBody>
@@ -245,7 +316,7 @@ const Setting = () => {
                 </CModalTitle>
               </CModalHeader>
               <CModalBody>
-                Do you want to delete <strong>{selectedData?.key}</strong> Setting? 
+                Do you want to delete <strong>{selectedData?.key}</strong> Contact message? 
               </CModalBody>
               <CModalFooter>
                 <CButton color="secondary" onClick={() => closeConfirmModal()}>
@@ -269,4 +340,4 @@ const Setting = () => {
   )
 }
 
-export default Setting
+export default ContactBase

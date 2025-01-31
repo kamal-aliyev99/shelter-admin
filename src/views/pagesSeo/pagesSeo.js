@@ -29,7 +29,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import Toast from '../../components/Toast';
 
-const Setting = () => {
+const PagesSeo = () => {
   const dispatch = useDispatch();
   const [datas, setDatas] = useState([]);
   const [selectedData, setSelectedData] = useState();
@@ -63,7 +63,7 @@ const Setting = () => {
   }
 
   function getDatas() {
-    fetch(`${apiURL}/api/setting`)
+    fetch(`${apiURL}/api/pagesSeo`)
       .then(res => {
         if (res.ok) {
           return res.json();
@@ -89,7 +89,7 @@ const Setting = () => {
   function deleteData(id) {
     setLoadingIDs(prew => [...prew, id])
 
-    fetch(`${apiURL}/api/setting/${id}`, {
+    fetch(`${apiURL}/api/pagesSeo/${id}`, {
       method: "DELETE",
       credentials: "include",
     })
@@ -99,7 +99,7 @@ const Setting = () => {
           getDatas();
           showNotf(true, "Deleted successfully");
         } else {
-          showNotf(false, `${res.status}: An error occurred while deleting setting`);
+          showNotf(false, `${res.status}: An error occurred while deleting page Seo`);
           return res.json().then(err =>{
             console.error(err);
           })
@@ -117,11 +117,11 @@ const Setting = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader className='card__header'>
-            <h3> Setting </h3>
+            <h3> Pages Seo </h3>
             <CButton
               color="primary"
               className='flexButton'
-              href='#/setting/0'
+              href='#/pagesSeo/0'
             >
               <CIcon icon={cilPlus}/>
               Create
@@ -129,15 +129,15 @@ const Setting = () => {
           </CCardHeader>
           <CCardBody>
             <p className="text-body-secondary small">
-              You can add, update and delete <i>Setting</i>
+              You can add, update and delete <i>Pages Seo</i>
             </p>
             <div className='table-container'>
               <CTable striped hover className='main-table'>
                 <CTableHead>
                   <CTableRow>
                     <CTableHeaderCell scope="col">ID</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Key</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Value</CTableHeaderCell>
+                    <CTableHeaderCell scope="col">Page</CTableHeaderCell>
+                    <CTableHeaderCell scope="col">Title</CTableHeaderCell>
                     <CTableHeaderCell scope="col" className='table__options'>Options</CTableHeaderCell>
                   </CTableRow>
                 </CTableHead>
@@ -150,8 +150,8 @@ const Setting = () => {
                         className="tableRow"
                       >
                         <CTableHeaderCell scope="row">{data.id}</CTableHeaderCell>
-                        <CTableDataCell>{data.key}</CTableDataCell>
-                        <CTableDataCell>{data.value}</CTableDataCell>
+                        <CTableDataCell>{data.page}</CTableDataCell>
+                        <CTableDataCell>{data.title}</CTableDataCell>
                         <CTableDataCell className='table__options--item'>
                           <CButton
                             color="info"
@@ -167,7 +167,7 @@ const Setting = () => {
                             color="warning"
                             variant="outline"
                             title='Edit'
-                            href={`#/setting/${data.id}`}
+                            href={`#/pagesSeo/${data.id}`}
                           >
                             <CIcon icon={cilPencil}/>
                           </CButton>
@@ -198,7 +198,7 @@ const Setting = () => {
 
             <CModal scrollable visible={modalVisible} onClose={() => closeModal()} className='infoModal'>
               <CModalHeader>
-                <CModalTitle>Setting</CModalTitle>
+                <CModalTitle>Page Seo</CModalTitle>
               </CModalHeader>
               <CModalBody>
                 
@@ -210,15 +210,29 @@ const Setting = () => {
                 <hr/>
 
                 <div className='infoModal__item'>
-                  <strong> Key </strong>
-                  <p> {selectedData?.key} </p>
+                  <strong> Page </strong>
+                  <p> {selectedData?.page} </p>
                 </div>
 
                 <hr/>
 
                 <div className='infoModal__item'>
-                  <strong> Value </strong>
-                  <p> {selectedData?.value} </p>
+                  <strong> Title </strong>
+                  <p> {selectedData?.title} </p>
+                </div>
+
+                <hr/>
+
+                <div className='infoModal__item'>
+                  <strong> Description </strong>
+                  <p> {selectedData?.description} </p>
+                </div>
+
+                <hr/>
+
+                <div className='infoModal__item'>
+                  <strong> Keywords </strong>
+                  <p> {selectedData?.keywords} </p>
                 </div>
 
               </CModalBody>
@@ -245,7 +259,7 @@ const Setting = () => {
                 </CModalTitle>
               </CModalHeader>
               <CModalBody>
-                Do you want to delete <strong>{selectedData?.key}</strong> Setting? 
+                Do you want to delete <strong>{selectedData?.key}</strong> Page Seo? 
               </CModalBody>
               <CModalFooter>
                 <CButton color="secondary" onClick={() => closeConfirmModal()}>
@@ -269,4 +283,4 @@ const Setting = () => {
   )
 }
 
-export default Setting
+export default PagesSeo

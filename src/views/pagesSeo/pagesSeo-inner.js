@@ -8,6 +8,7 @@ import {
   CForm,
   CFormInput,
   CFormLabel,
+  CFormTextarea,
   CRow,
   CSpinner
 } from '@coreui/react'
@@ -28,8 +29,10 @@ import slugify from 'slugify';
 
 const validationSchema = Yup.object({
   id: Yup.number().min(0, "ID cannot be less than 0"),
-  key: Yup.string().max(255, 'key must be at most 255 characters').required('key is required'),
-  value: Yup.string().nullable(),
+  page: Yup.string().max(255, 'page must be at most 255 characters').required('page is required'),
+  title: Yup.string().max(255, 'title must be at most 255 characters').required('title is required'),
+  description: Yup.string().nullable(),
+  keywords: Yup.string().nullable(),
 });
 
 const validateForm = async (formData) => {
@@ -46,9 +49,9 @@ const validateForm = async (formData) => {
 };
 
 
-//    setting    Component
+//    pagesSeo    Component
 
-const SettingInner = () => {
+const PagesSeoInner = () => {
   const apiURL = useSelector((state) => state.apiURL);  
   const nav = useNavigate();
   const dispatch = useDispatch();
@@ -59,8 +62,10 @@ const SettingInner = () => {
   const [validationErrors, setValidationErrors] = useState();
   const [data, setData] = useState({  
     id: 0,
-    key: "",
-    value: ""
+    page: "",
+    title: "",
+    description: "",
+    keywords: ""
   });
   const [primaryInput, setPrimaryInput] = useState("")
 
@@ -82,12 +87,12 @@ const SettingInner = () => {
     setPrimaryInput(text);
     setData(prew => ({
       ...prew,
-      key: slugify(text, { lower: true, strict: true })
+      page: slugify(text, { lower: true, strict: true })
     }))
   }
 
   function getData(id) {
-    fetch(`${apiURL}/api/setting/${id}`)
+    fetch(`${apiURL}/api/pagesSeo/${id}`)
       .then(res => {
         if (res.ok) {
           return res.json();
@@ -100,7 +105,7 @@ const SettingInner = () => {
       })
       .then(data => {
         setData(data)        
-        setPrimaryInput(data.key)
+        setPrimaryInput(data.page)
       })
       .catch(err => {        
         setNotFound(true);
@@ -132,11 +137,13 @@ const SettingInner = () => {
 
       const formData = new FormData();
       id != 0 && formData.append('id', id);
-      formData.append('key', data.key);
-      formData.append('value', data.value);
+      formData.append('page', data.page);
+      formData.append('title', data.title);
+      formData.append('description', data.description);
+      formData.append('keywords', data.keywords);
       
 
-      fetch(`${apiURL}/api/setting/${id != 0 ? id : ""}`, {
+      fetch(`${apiURL}/api/pagesSeo/${id != 0 ? id : ""}`, {
         method: id == 0 ? "POST" : "PATCH",
         credentials: "include",
         body: formData,
@@ -154,7 +161,7 @@ const SettingInner = () => {
         .then((data) => {          
           // console.log('Success:', data);
           if (id==0) {
-            nav(`/setting/${data.data.id}`)
+            nav(`/pagesSeo/${data.data.id}`)
           } 
           getData(data.data.id);
           showNotf(true, data.message);
@@ -182,7 +189,7 @@ const SettingInner = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader className='card__header'>
-            <h3> Setting </h3>
+            <h3> Page Seo </h3>
             <div className='card__header--btns'>
                 <CButton
                     color="primary"
@@ -198,7 +205,7 @@ const SettingInner = () => {
                     color="secondary"
                     className='flexButton'
                     // onClick={() => null}
-                    href='#/setting'
+                    href='#/pagesSeo'
                     disabled={loading}
                 >
                   <CIcon icon={cilXCircle}/>
@@ -208,7 +215,7 @@ const SettingInner = () => {
           </CCardHeader>
           <CCardBody>
             <p className="text-body-secondary small">
-              You can {id==0 ? "create" : "update"} <i>Setting</i>
+              You can {id==0 ? "create" : "update"} <i>Page Seo</i>
             </p>
 
             <CForm
@@ -218,7 +225,7 @@ const SettingInner = () => {
               onSubmit={handleSubmit}
             >
             
-                <CCol md={2} className="mb-3">
+                <CCol md={12} className="mb-3">
                   <CFormLabel htmlFor="id">
                     ID 
                   </CFormLabel>
@@ -231,55 +238,89 @@ const SettingInner = () => {
                     value={data?.id || ""}
                   />
                 </CCol>
-
-                <CCol md={12} className="mb-3">
-                  <CFormLabel htmlFor="value">
-                    Value
-                  </CFormLabel>
-                  <CFormInput
-                    type="text"
-                    id="value"
-                    name='value'
-                    placeholder="Value"
-                    value={data?.value || ""}
-                    onChange={handleData}
-                    feedbackInvalid={validationErrors?.value}
-                    invalid={!!validationErrors?.value}
-                  />
-                </CCol>
                 
                 <CCol md={6} className="mb-3">
-                  <CFormLabel htmlFor="keyInput">
-                    Key
+                  <CFormLabel htmlFor="pageInput">
+                    Page
                     <span className='inputRequired' title='Required'>*</span>
                   </CFormLabel>
                   <CFormInput
                     type="text"
-                    id="keyInput"
-                    name="keyInput"
-                    placeholder="Key"
+                    id="pageInput"
+                    name="pageInput"
+                    placeholder="page"
                     value={primaryInput}
                     onChange={handlePrimaryInput}
                     required
-                    feedbackInvalid={validationErrors?.key}
-                    invalid={!!validationErrors?.key}
+                    feedbackInvalid={validationErrors?.page}
+                    invalid={!!validationErrors?.page}
                   />
                 </CCol>
 
                 <CCol md={6} className="mb-3">
-                  <CFormLabel htmlFor="key">
-                    Key (formatted)
+                  <CFormLabel htmlFor="page">
+                    Page (formatted)
                     {/* <span className='inputRequired' title='Required'>*</span> */}
                   </CFormLabel>
                   <CFormInput
                     type="text"
-                    id="key"
-                    name="key"
+                    id="page"
+                    name="page"
                     placeholder="Will create automatically"
-                    value={data?.key}
+                    value={data?.page}
                     // onChange={handleData}
                     disabled
                   />
+                </CCol>
+
+                <CCol md={12} className="mb-3">
+                  <CFormLabel htmlFor="title">
+                    Title
+                    <span className='inputRequired' title='Required'>*</span>
+                  </CFormLabel>
+                  <CFormInput
+                    type="text"
+                    id="title"
+                    name='title'
+                    placeholder="title"
+                    value={data?.title || ""}
+                    onChange={handleData}
+                    feedbackInvalid={validationErrors?.title}
+                    invalid={!!validationErrors?.title}
+                  />
+                </CCol>
+
+                <CCol md={12} className="mb-3">
+                    <CFormLabel htmlFor="description">
+                        Description 
+                    </CFormLabel>
+                    <CFormTextarea
+                        className='form__textarea'
+                        id={`description`}
+                        name={`description`}
+                        placeholder="description"
+                        value={data?.description || ""}
+                        onChange={(e) => handleData(e)}
+                        feedbackInvalid={validationErrors?.description} 
+                        invalid={!!validationErrors?.description}
+                    />
+                </CCol>
+
+                <CCol md={12} className="mb-3">
+                    <CFormLabel htmlFor="keywords">
+                        Keywords 
+                        <p> Note: <i>Words must be separated by `,`</i></p>
+                    </CFormLabel>
+                    <CFormTextarea
+                        className='form__textarea'
+                        id={`keywords`}
+                        name={`keywords`}
+                        placeholder="keywords"
+                        value={data?.keywords || ""}
+                        onChange={(e) => handleData(e)}
+                        feedbackInvalid={validationErrors?.keywords} 
+                        invalid={!!validationErrors?.keywords}
+                    />
                 </CCol>
 
                 <div className='card__header--btns'>
@@ -296,7 +337,7 @@ const SettingInner = () => {
                   <CButton
                     color="secondary"
                     className='flexButton'
-                    href='#/setting'
+                    href='#/pagesSeo'
                   >
                     <CIcon icon={cilXCircle}/>
                     Cancel
@@ -316,4 +357,4 @@ const SettingInner = () => {
   )
 }
 
-export default SettingInner
+export default PagesSeoInner

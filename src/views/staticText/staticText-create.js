@@ -167,6 +167,7 @@ const StaticTextCreate = () => {
 
       fetch(`${apiURL}/api/staticText`, {
         method: "POST",
+        credentials: "include",
         body: formData,
       })
         .then((res) => {

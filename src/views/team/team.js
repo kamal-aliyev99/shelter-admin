@@ -25,17 +25,19 @@ import {
   cilPencil,
   cilDescription,
   cilPlus,
+  cilImageBroken,
 } from '@coreui/icons'
 import { useDispatch, useSelector } from 'react-redux';
 import Toast from '../../components/Toast';
 
-const Setting = () => {
+const Team = () => {
   const dispatch = useDispatch();
   const [datas, setDatas] = useState([]);
   const [selectedData, setSelectedData] = useState();
   const [modalVisible, setModalVisible] = useState(false);
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
   const apiURL = useSelector((state) => state.apiURL);  
+  const lang = useSelector((state) => state.lang);
   const [loadingIDs, setLoadingIDs] = useState([])
 
   function showNotf(ok, message) {
@@ -63,7 +65,7 @@ const Setting = () => {
   }
 
   function getDatas() {
-    fetch(`${apiURL}/api/setting`)
+    fetch(`${apiURL}/api/team?lang=${lang}`)
       .then(res => {
         if (res.ok) {
           return res.json();
@@ -84,12 +86,12 @@ const Setting = () => {
 
   useEffect(() => {
     getDatas();
-  }, [apiURL])
+  }, [apiURL, lang])
 
   function deleteData(id) {
     setLoadingIDs(prew => [...prew, id])
 
-    fetch(`${apiURL}/api/setting/${id}`, {
+    fetch(`${apiURL}/api/team/${id}`, {
       method: "DELETE",
       credentials: "include",
     })
@@ -99,7 +101,7 @@ const Setting = () => {
           getDatas();
           showNotf(true, "Deleted successfully");
         } else {
-          showNotf(false, `${res.status}: An error occurred while deleting setting`);
+          showNotf(false, `${res.status}: An error occurred while deleting this team member`);
           return res.json().then(err =>{
             console.error(err);
           })
@@ -117,11 +119,11 @@ const Setting = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader className='card__header'>
-            <h3> Setting </h3>
+            <h3> Team </h3>
             <CButton
               color="primary"
               className='flexButton'
-              href='#/setting/0'
+              href='#/team/add'
             >
               <CIcon icon={cilPlus}/>
               Create
@@ -129,15 +131,17 @@ const Setting = () => {
           </CCardHeader>
           <CCardBody>
             <p className="text-body-secondary small">
-              You can add, update and delete <i>Setting</i>
+              You can add, update and delete <i>Team Members</i>
             </p>
             <div className='table-container'>
               <CTable striped hover className='main-table'>
                 <CTableHead>
                   <CTableRow>
                     <CTableHeaderCell scope="col">ID</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Key</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Value</CTableHeaderCell>
+                    <CTableHeaderCell scope="col">Image</CTableHeaderCell>
+                    <CTableHeaderCell scope="col">Name ({lang})</CTableHeaderCell>
+                    <CTableHeaderCell scope="col">Position ({lang})</CTableHeaderCell>
+                    <CTableHeaderCell scope="col">LinkedIn</CTableHeaderCell>
                     <CTableHeaderCell scope="col" className='table__options'>Options</CTableHeaderCell>
                   </CTableRow>
                 </CTableHead>
@@ -150,8 +154,23 @@ const Setting = () => {
                         className="tableRow"
                       >
                         <CTableHeaderCell scope="row">{data.id}</CTableHeaderCell>
-                        <CTableDataCell>{data.key}</CTableDataCell>
-                        <CTableDataCell>{data.value}</CTableDataCell>
+                        <CTableDataCell>
+                          {
+                            data.image ?
+                            <div className='table__image--S'>
+                              <img src={data.image} alt={data.name}/>
+                            </div> :
+                            <CIcon icon={cilImageBroken} title="There isn't image"/>
+                          }
+                        </CTableDataCell>
+                        <CTableDataCell>{data.name}</CTableDataCell>
+                        <CTableDataCell>{data.position}</CTableDataCell>
+                        <CTableDataCell>
+                            {
+                                data.linkedin ||
+                                <span className='not-content'> Not Content </span>
+                            }
+                        </CTableDataCell>
                         <CTableDataCell className='table__options--item'>
                           <CButton
                             color="info"
@@ -167,7 +186,7 @@ const Setting = () => {
                             color="warning"
                             variant="outline"
                             title='Edit'
-                            href={`#/setting/${data.id}`}
+                            href={`#/team/${data.id}`}
                           >
                             <CIcon icon={cilPencil}/>
                           </CButton>
@@ -198,7 +217,7 @@ const Setting = () => {
 
             <CModal scrollable visible={modalVisible} onClose={() => closeModal()} className='infoModal'>
               <CModalHeader>
-                <CModalTitle>Setting</CModalTitle>
+                <CModalTitle>Team Member</CModalTitle>
               </CModalHeader>
               <CModalBody>
                 
@@ -210,15 +229,42 @@ const Setting = () => {
                 <hr/>
 
                 <div className='infoModal__item'>
-                  <strong> Key </strong>
-                  <p> {selectedData?.key} </p>
+                  <strong> Image </strong>
+                  {
+                    selectedData?.image ?
+                    <div className='infoModal__item--image'>
+                      <img src={selectedData?.image} alt={selectedData?.key}/>
+                    </div> :
+                    <div className='infoModal__item--icon'>
+                      <CIcon icon={cilImageBroken} title="There isn't image"/>
+                    </div>
+                  }
                 </div>
 
                 <hr/>
 
                 <div className='infoModal__item'>
-                  <strong> Value </strong>
-                  <p> {selectedData?.value} </p>
+                  <strong> Name ({lang})</strong>
+                  <p> {selectedData?.name} </p>
+                </div>
+
+                <hr/>
+
+                <div className='infoModal__item'>
+                  <strong> Position ({lang}) </strong>
+                  <p> {selectedData?.position} </p>
+                </div>
+
+                <hr/>
+
+                <div className='infoModal__item'>
+                  <strong> LinkedIn link </strong>
+                  <p>
+                  {
+                    selectedData?.linkedin ||
+                    <span className='not-content'> Not Content </span>
+                  }
+                  </p>
                 </div>
 
               </CModalBody>
@@ -245,7 +291,7 @@ const Setting = () => {
                 </CModalTitle>
               </CModalHeader>
               <CModalBody>
-                Do you want to delete <strong>{selectedData?.key}</strong> Setting? 
+                Do you want to delete <strong>{selectedData?.name}</strong> Team Member? 
               </CModalBody>
               <CModalFooter>
                 <CButton color="secondary" onClick={() => closeConfirmModal()}>
@@ -269,4 +315,4 @@ const Setting = () => {
   )
 }
 
-export default Setting
+export default Team

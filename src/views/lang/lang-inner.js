@@ -30,7 +30,7 @@ import Toast from '../../components/Toast';
 
 const validationSchema = Yup.object({
   id: Yup.number().min(0, "ID cannot be less than 0"),
-  langCode: Yup.string().max(10, 'langCode must be at most 10 characters').required('langCode is required'),
+  langCode: Yup.string().max(3, 'langCode must be at most 3 characters').required('langCode is required'),
   name: Yup.string().max(255, 'Name must be at most 255 characters').required('Name is required'),
   image: Yup.string().nullable(),
 });
@@ -181,6 +181,7 @@ const LangInner = () => {
 
       fetch(`${apiURL}/api/lang/${id != 0 ? id : ""}`, {
         method: id == 0 ? "POST" : "PATCH",
+        credentials: "include",
         body: formData,
       })
         .then((res) => {
@@ -347,7 +348,7 @@ const LangInner = () => {
                     type="text"
                     id="langCode"
                     name="langCode"
-                    placeholder="Language Code (max 10 character)"
+                    placeholder="Language Code (max 3 character)"
                     value={data?.langCode}
                     onChange={handleData}
                     required

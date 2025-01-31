@@ -92,6 +92,7 @@ const StaticText = () => {
 
     fetch(`${apiURL}/api/staticText/${id}`, {
       method: "DELETE",
+      credentials: "include",
     })
       .then((res) => {        
         if (res.ok) {

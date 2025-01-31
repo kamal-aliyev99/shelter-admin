@@ -93,6 +93,7 @@ const ProductType = () => {
 
     fetch(`${apiURL}/api/productType/${id}`, {
       method: "DELETE",
+      credentials: "include",
     })
       .then((res) => {        
         if (res.ok) {

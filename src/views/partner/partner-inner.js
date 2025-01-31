@@ -179,6 +179,7 @@ const PartnerInner = () => {
 
       fetch(`${apiURL}/api/partner/${id != 0 ? id : ""}`, {
         method: id == 0 ? "POST" : "PATCH",
+        credentials: "include",
         body: formData,
       })
         .then((res) => {

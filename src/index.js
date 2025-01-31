@@ -5,9 +5,12 @@ import 'core-js'
 
 import App from './App'
 import store from './store'
+import { HashRouter } from 'react-router-dom'
 
 createRoot(document.getElementById('root')).render(
   <Provider store={store}>
-    <App />
+    <HashRouter>
+      <App />
+    </HashRouter>
   </Provider>,
 )

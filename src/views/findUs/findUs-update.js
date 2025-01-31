@@ -150,6 +150,7 @@ const FindUsUpdate = () => {
 
       fetch(`${apiURL}/api/findUs/${id}`, {
         method: "PATCH",
+        credentials: "include",
         body: formData,
       })
         .then((res) => {          

@@ -226,6 +226,7 @@ const CategoryUpdate = () => {
 
       fetch(`${apiURL}/api/category/${id}`, {
         method: "PATCH",
+        credentials: "include",
         body: formData,
       })
         .then((res) => {          

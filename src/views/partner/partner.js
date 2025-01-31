@@ -92,6 +92,7 @@ const Partner = () => {
 
     fetch(`${apiURL}/api/partner/${id}`, {
       method: "DELETE",
+      credentials: "include",
     })
       .then((res) => {        
         if (res.ok) {

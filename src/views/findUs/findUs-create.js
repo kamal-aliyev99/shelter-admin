@@ -172,6 +172,7 @@ const FindUsCreate = () => {
 
       fetch(`${apiURL}/api/findUs`, {
         method: "POST",
+        credentials: "include",
         body: formData,
       })
         .then((res) => {

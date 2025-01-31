@@ -92,6 +92,7 @@ const FindUS = () => {
 
     fetch(`${apiURL}/api/findUs/${id}`, {
       method: "DELETE",
+      credentials: "include",
     })
       .then((res) => {        
         if (res.ok) {

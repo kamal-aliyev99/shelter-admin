@@ -23,7 +23,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import * as Yup from 'yup';
 import Toast from '../../components/Toast';
-import slugify from 'slugify';
 
 
 
@@ -31,9 +30,9 @@ import slugify from 'slugify';
 
 const validationSchema = Yup.object({
   id: Yup.number().min(0, "ID cannot be less than 0"),
-  page: Yup.string().max(255, 'page must be at most 255 characters').required('page is required'),
+  title: Yup.string().max(255, 'key must be at most 255 characters').required('key is required'),
   image: Yup.string().nullable(),
-});
+}).noUnknown(true, "Unknown property is not allowed"); // olmayan filedler yazanda xeta vermir,,; ~  .noUnknown(true, "Unknown property is not allowed");
 
 const imageValidation = Yup.mixed()
   .test('is-image', 'Only image files are allowed', (value) => {
@@ -66,9 +65,9 @@ const validateImage = async (file) => {
 };
 
 
-//    B A N N E R    Component
+//    Customer    Component
 
-const BannerInner = () => {
+const CustomerInner = () => {
   const apiURL = useSelector((state) => state.apiURL);  
   const nav = useNavigate();
   const dispatch = useDispatch();
@@ -79,10 +78,10 @@ const BannerInner = () => {
   const [validationErrors, setValidationErrors] = useState();
   const [data, setData] = useState({  
     id: 0,
-    page: "",
-    image: undefined
+    title: "",
+    image: undefined,
+    showHomePage: false
   });
-  const [primaryInput, setPrimaryInput] = useState("")
   const [deleteImage, setDeleteImage] = useState(false);
   const [file, setFile] = useState(null);
   const [previewImage, setPreviewImage] = useState();
@@ -102,21 +101,23 @@ const BannerInner = () => {
   }
 
   function handleData(e) {
-    setData(prew => {
-      return {
-        ...prew,
-        [e.target.name]: e.target.value 
-      }
-    })
-  }
+    const name = e.target.name;
 
-  function handlePrimaryInput(e) {
-    const text = e.target.value;
-    setPrimaryInput(text);
-    setData(prew => ({
-      ...prew,
-      page: slugify(text, { lower: true, strict: true })
-    }))
+    if (name == "showHomePage") {
+        setData(prew => {
+            return {
+                ...prew,
+                [name]: !prew.showHomePage 
+            }
+        })
+    } else {
+        setData(prew => {
+            return {
+                ...prew,
+                [name]: e.target.value 
+            }
+        })
+    }
   }
 
   useEffect(() => {
@@ -129,7 +130,7 @@ const BannerInner = () => {
   }, [file])  
 
   function getData(id) {
-    fetch(`${apiURL}/api/banner/${id}`)
+    fetch(`${apiURL}/api/customer/${id}`)
       .then(res => {
         if (res.ok) {
           return res.json();
@@ -142,7 +143,6 @@ const BannerInner = () => {
       })
       .then(data => {
         setData(data)        
-        setPrimaryInput(data.page)
       })
       .catch(err => {        
         setNotFound(true);
@@ -153,7 +153,6 @@ const BannerInner = () => {
   useEffect(() => {
     id != 0 &&
     getData(id)
-    
   }, [apiURL, id])
 
   async function handleSubmit(e) {
@@ -161,7 +160,7 @@ const BannerInner = () => {
     setLoading(true)
 
     const formValidationErrors = await validateForm(data);
-    const imageValidationErrors = file && await validateImage(file);
+    const imageValidationErrors = file && await validateImage(file);    
     
     if (formValidationErrors || imageValidationErrors) {
       const err = {
@@ -178,7 +177,8 @@ const BannerInner = () => {
 
       const formData = new FormData();
       id != 0 && formData.append('id', id);
-      formData.append('page', data.page);
+      formData.append('title', data.title);
+      formData.append('showHomePage', data.showHomePage);
   
       if (deleteImage || (id == 0 && !file)) {
         formData.append('image', null);      
@@ -189,7 +189,7 @@ const BannerInner = () => {
       }
       
 
-      fetch(`${apiURL}/api/banner/${id != 0 ? id : ""}`, {
+      fetch(`${apiURL}/api/customer/${id != 0 ? id : ""}`, {
         method: id == 0 ? "POST" : "PATCH",
         credentials: "include",
         body: formData,
@@ -207,7 +207,7 @@ const BannerInner = () => {
         .then((data) => {          
           // console.log('Success:', data);
           if (id==0) {
-            nav(`/banner/${data.data.id}`)
+            nav(`/customer/${data.data.id}`)
           } 
           getData(data.data.id);
           file && handleDeleteDownloadedImage();
@@ -237,7 +237,7 @@ const BannerInner = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader className='card__header'>
-            <h3> Banner </h3>
+            <h3> Customer </h3>
             <div className='card__header--btns'>
                 <CButton
                     color="primary"
@@ -253,7 +253,7 @@ const BannerInner = () => {
                     color="secondary"
                     className='flexButton'
                     // onClick={() => null}
-                    href='#/banner'
+                    href='#/customer'
                     disabled={loading}
                 >
                   <CIcon icon={cilXCircle}/>
@@ -263,7 +263,7 @@ const BannerInner = () => {
           </CCardHeader>
           <CCardBody>
             <p className="text-body-secondary small">
-              You can {id==0 ? "create" : "update"} <i>Banner</i>
+              You can {id==0 ? "create" : "update"} <i>Customer</i>
             </p>
 
 
@@ -274,7 +274,7 @@ const BannerInner = () => {
               onSubmit={handleSubmit}
             >
                 <CCol md={12} className="mb-3">
-                  <CFormLabel htmlFor="image" className='mb-3'>Image (banner)</CFormLabel>
+                  <CFormLabel htmlFor="image" className='mb-3'>Image</CFormLabel>
                   <div className='fileInput'>
                     {
                       data?.image &&
@@ -334,7 +334,7 @@ const BannerInner = () => {
                   }
                 </CCol>
             
-                <CCol md={12} className="mb-3">
+                <CCol md={6} className="mb-3">
                   <CFormLabel htmlFor="id">
                     ID 
                   </CFormLabel>
@@ -349,37 +349,32 @@ const BannerInner = () => {
                 </CCol>
                 
                 <CCol md={6} className="mb-3">
-                  <CFormLabel htmlFor="pageInput">
-                    Page Name
+                  <CFormLabel htmlFor="title">
+                    Title
                     <span className='inputRequired' title='Required'>*</span>
                   </CFormLabel>
                   <CFormInput
                     type="text"
-                    id="pageInput"
-                    name="pageInput"
-                    placeholder="Page Name"
-                    value={primaryInput}
-                    onChange={handlePrimaryInput}
+                    id="title"
+                    name="title"
+                    placeholder="Title"
+                    value={data.title}
+                    onChange={handleData}
                     required
-                    feedbackInvalid={validationErrors?.page}
-                    invalid={!!validationErrors?.page}
+                    feedbackInvalid={validationErrors?.title}
+                    invalid={!!validationErrors?.title}
                   />
                 </CCol>
 
-                <CCol md={6} className="mb-3">
-                  <CFormLabel htmlFor="page">
-                    Page name (formatted)
-                    {/* <span className='inputRequired' title='Required'>*</span> */}
-                  </CFormLabel>
-                  <CFormInput
-                    type="text"
-                    id="page"
-                    name="page"
-                    placeholder="Will create automatically"
-                    value={data?.page}
-                    // onChange={handleData}
-                    disabled
-                  />
+                <CCol md={6} className="mb-2">
+                    <CFormCheck 
+                        id="showHomePage" 
+                        name='showHomePage'
+                        className='mt-1'
+                        label="Show HomePage" 
+                        checked={data.showHomePage}
+                        onChange={handleData}
+                    />
                 </CCol>
 
                 <div className='card__header--btns'>
@@ -396,7 +391,7 @@ const BannerInner = () => {
                   <CButton
                     color="secondary"
                     className='flexButton'
-                    href='#/banner'
+                    href='#/customer'
                   >
                     <CIcon icon={cilXCircle}/>
                     Cancel
@@ -416,4 +411,4 @@ const BannerInner = () => {
   )
 }
 
-export default BannerInner
+export default CustomerInner
