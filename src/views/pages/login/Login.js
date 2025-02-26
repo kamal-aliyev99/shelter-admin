@@ -65,7 +65,7 @@ const Login = () => {
         } else {
           return res.json().then(err =>{
             // console.error(err);
-            throw new Error(`${res.status}: ${err.message}`)
+            throw new Error(`${err.message}`)
           })
         }
       })
@@ -77,9 +77,9 @@ const Login = () => {
         dispatch({type: "set", userData: data})
         // showNotf(true, data.message);
       })
-      .catch((error) => {
+      .catch((error) => {        
         // showNotf(false, `${error}`)
-        setError(`${error}`)
+        setError(`${error.message}`)
       })
   }  
 
@@ -108,7 +108,7 @@ const Login = () => {
                         onChange={handleData}
                       />
                     </CInputGroup>
-                    <CInputGroup className="mb-4">
+                    <CInputGroup className="mb-2">
                       <CInputGroupText>
                         <CIcon icon={cilLockLocked} />
                       </CInputGroupText>
@@ -124,7 +124,7 @@ const Login = () => {
                     </CInputGroup>
                     {
                       error ?
-                      <p className='loginError'> {error} </p> : 
+                      <p className='loginError mb-3'> {error} </p> : 
                       null
                     }
                     <CRow>
