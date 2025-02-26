@@ -307,7 +307,11 @@ const CustomTextUpdate = () => {
                 <CCol md={12} className="mb-3">
                     <CFormLabel htmlFor="value">
                         Value ({lang})
-                        <span className='inputRequired' title='Required'>*</span>
+                        <span className='inputRequired' title='Required'>* </span>
+                        {   // not necessary :)
+                          data?.key == "about-hero-desc" &&
+                          <> - max 600 character ( {data?.value.length} / 600 ) </>
+                        }
                     </CFormLabel>
                     <CFormTextarea
                         className='form__textarea'
